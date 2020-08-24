@@ -7,18 +7,18 @@
     const AwsConfig = require('./aws-config');
     const TtsPolly = require('./tts-polly');
 
-    class Voice {
+    class SayAgain {
         constructor(opts = {}) {
             // options
             this.name = opts.name || "test-voice";
-            this.application = opts.application || "sc-voice";
+            this.application = opts.application || "test-application";
             this.bucketName = opts.bucketName ||
                 `${this.application}.${pkg.name}`;
             this.mj = new MerkleJson({
                 hashTag: "guid",
             });
             this.tts = opts.tts || new TtsPolly(opts);
-            this.s3 = Voice.createS3(opts);
+            this.s3 = SayAgain.createS3(opts);
             this.ignoreCache = opts.ignoreCache;
 
             // instance
@@ -142,6 +142,6 @@
 
     } 
 
-    module.exports = exports.Voice = Voice;
+    module.exports = exports.SayAgain = SayAgain;
 })(typeof exports === "object" ? exports : (exports = {}));
 

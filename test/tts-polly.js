@@ -7,7 +7,7 @@
     const {
         AwsConfig,
         TtsPolly,
-        Voice,
+        SayAgain,
     } = require('../index');
     const TESTDATA = path.join(__dirname, 'data');
     const CFGPATH = path.join(__dirname, '..', 'local', 'aws.json');

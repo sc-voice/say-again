@@ -9,7 +9,7 @@ npm install --save say-again
 
 ### Example
 ```
-const { Voice, TtsPolly } = require("say-again");
+const { SayAgain, TtsPolly } = require("say-again");
 
 var request = {
   "api": "aws-polly",
@@ -20,7 +20,7 @@ var request = {
   "text": "<prosody rate=\"-30%\" pitch=\"-10%\">hello</prosody>"
 }
 
-var v = new Voice();
+var v = new SayAgain();
 var res = await v.speak(request);
 // { 
 //   request, 
