@@ -7,8 +7,25 @@ Default TTS is AWS Polly.
 npm install --save say-again
 ```
 
+#### AWS credentials (JSON file)
+Configure a SayAgain AWS configuration file 
+(e.g., `MY_AWS.json`)
+```
+cp test/data/aws-sample.json MY_AWS.json
+```
+Edit MY_AWS.json with your actual AWS credentials.
+
+#### AWS credentials (environment)
+You can also configure AWS credentials
+using nodejs environment variables:
+
+* `aws_config_region`
+* `aws_config_accessKeyId`
+* `aws_config_secretAccessKey`
+
 ### Example
 ```
+const CFGPATH = "MY_AWS.json";
 const { SayAgain, TtsPolly } = require("say-again");
 
 var request = {
@@ -20,7 +37,7 @@ var request = {
   "text": "<prosody rate=\"-30%\" pitch=\"-10%\">hello</prosody>"
 }
 
-var v = new SayAgain();
+var v = new SayAgain(CFGPATH);
 var res = await v.speak(request);
 // { 
 //   request, 
