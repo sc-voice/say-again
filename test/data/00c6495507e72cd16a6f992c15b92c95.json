@@ -1,0 +1,12 @@
+{
+  "api": "aws-polly",
+  "apiVersion": "v4",
+  "audioFormat": "mp3",
+  "voice": "Aditi",
+  "prosody": {
+    "rate": "-30%",
+    "pitch": "-10%"
+  },
+  "language": "hi-IN",
+  "text": "<prosody rate=\"-30%\" pitch=\"-10%\"><phoneme alphabet=\"ipa\" ph=\"ɖʱɑː t̪ʊ jɑː\">dhātuyā</phoneme><break time=\"0.001s\"/> <phoneme alphabet=\"ipa\" ph=\"ce t̪ə nɑː\">cetanā</phoneme><break time=\"0.001s\"/> <phoneme alphabet=\"ipa\" ph=\"pə t̪ɪʈ ʈhɪ t̪ɑː\">patiṭṭhitā</phoneme><break time=\"0.001s\"/> <phoneme alphabet=\"ipa\" ph=\"pət̪ t̪ʰə nɑː\">patthanā</phoneme><break time=\"0.001s\"/></prosody>"
+}

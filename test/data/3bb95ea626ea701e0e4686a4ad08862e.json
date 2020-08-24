@@ -1,0 +1,13 @@
+{
+  "api": "aws-polly",
+  "apiVersion": "v4",
+  "audioFormat": "mp3",
+  "voice": "Raveena",
+  "prosody": {
+    "rate": "-5%",
+    "pitch": "-0%"
+  },
+  "language": "en-IN",
+  "text": "<prosody rate=\"-5%\" pitch=\"-0%\"><phoneme alphabet=\"ipa\" ph=\"kɑn'ɐmɑθɑh\">Kāṇamātā</phoneme><break time=\"0.001s\"/> <break time=\"1.000s\"/> <break time=\"0.001s\"/><phoneme alphabet=\"ipa\" ph=\"uθθɐɺɑh\">Uttarā</phoneme><break time=\"0.001s\"/> <phoneme alphabet=\"ipa\" ph=\"nɐndɐ’s\">Nanda’s</phoneme><break time=\"0.001s\"/> mother <break time=\"1.000s\"/> <phoneme alphabet=\"ipa\" ph=\"vɪsɑkʰɑh\">Visākhā</phoneme><break time=\"0.001s\"/> Migāra’s mother <break time=\"1.000s\"/> the lay woman <phoneme alphabet=\"ipa\" ph=\"kʰuʝ.ʝuθθɐɺɑh\">Khujjuttarā</phoneme><break time=\"0.001s\"/> <break time=\"1.000s\"/> the lay woman <phoneme alphabet=\"ipa\" ph=\"sɑmɑvɐθiː\">Sāmāvatī</phoneme><break time=\"0.001s\"/> <break time=\"1.000s\"/> <phoneme alphabet=\"ipa\" ph=\"suppɐvɑsɑh\">Suppavāsā</phoneme><break time=\"0.001s\"/> the <phoneme alphabet=\"ipa\" ph=\"kolɪjɐn\">Koliyan</phoneme><break time=\"0.001s\"/> <break time=\"1.000s\"/> the lay woman <phoneme alphabet=\"ipa\" ph=\"suppɪjɑh\">Suppiyā</phoneme><break time=\"0.001s\"/> <break time=\"1.000s\"/> the housewife Nakula’s mother <break time=\"1.000s\"/></prosody>",
+  "guid": "3bb95ea626ea701e0e4686a4ad08862e"
+}

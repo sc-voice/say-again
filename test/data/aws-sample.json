@@ -1,0 +1,13 @@
+{
+  "region": "us-west-1",
+  "secretAccessKey": "MY_AWS_SECRET",
+  "accessKeyId": "MY_AWS_ID",
+  "polly": {
+    "signatureVersion": "v4",
+    "apiVersion": "2016-06-10"
+  },
+  "s3": {
+    "apiVersion": "2006-03-01",
+    "endpoint": "https://s3.us-west-1.amazonaws.com"
+  }
+}

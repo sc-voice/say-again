@@ -1,0 +1,14 @@
+{
+  "region": "test-region",
+  "secretAccessKey": "test_secretAccessKey",
+  "accessKeyId": "test_accessKeyId",
+  "polly": {
+    "signatureVersion": "test_polly_signatureVersion",
+    "apiVersion": "test_polly_apiVersion"
+  },
+  "s3": {
+    "apiVersion": "test_apiVersion",
+    "endpoint": "test_s3_endPoint",
+    "region": "test_s3_region"
+  }
+}
