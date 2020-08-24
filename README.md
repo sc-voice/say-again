@@ -7,7 +7,7 @@ Default TTS is AWS Polly.
 npm install --save say-again
 ```
 
-#### AWS credentials (JSON file)
+##### AWS credentials (JSON file)
 Configure a SayAgain AWS configuration file 
 (e.g., `MY_AWS.json`)
 ```
@@ -15,7 +15,7 @@ cp test/data/aws-sample.json MY_AWS.json
 ```
 Edit MY_AWS.json with your actual AWS credentials.
 
-#### AWS credentials (environment)
+##### AWS credentials (environment)
 You can also configure AWS credentials
 using nodejs environment variables:
 
