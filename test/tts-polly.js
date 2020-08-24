@@ -57,7 +57,7 @@
         });
 
     });
-    it("TESTTESTinitialize() is required", done=>{ 
+    it("initialize() is required", done=>{ 
         (async function() { try {
             var tts = new TtsPolly(CFGPATH);
             var res = await tts.initialize();
@@ -74,7 +74,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTspeak(request) => cached TTS", done=>{ 
+    it("speak(request) => cached TTS", done=>{ 
         (async function() { try {
             var tts = new TtsPolly({configPath:CFGPATH});
             var request = JSON.parse(fs.readFileSync(JSON00C6));

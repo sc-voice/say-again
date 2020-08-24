@@ -22,6 +22,20 @@ var request = {
 
 var v = new Voice();
 var res = await v.speak(request);
-// Buffer with mp3 
+// { 
+//   request, 
+//   s3key, 
+//   response: {
+//     mime: "audio/mpeg",
+//     base64: "..."
+//   }
+// }
+```
+
+To generate an MP3 file from the result:
+
+```
+var buf = Buffer.from(res.response.base64, 'base64');
+fs.writeFileSync('hello.mp3', buf);
 ```
 

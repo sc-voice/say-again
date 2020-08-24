@@ -67,7 +67,7 @@
         should(v.s3Key(req))
             .equal("hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
     });
-    it("speak(req) => cached TTS", done=>{ 
+    it("TESTTESTspeak(req) => cached TTS", done=>{ 
         (async function() { try {
             var v = new Voice({
                 tts: new TestTTS(),
@@ -108,7 +108,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTdeleteEntry(s3key) => removes cached guid", done=>{ 
+    it("deleteEntry(s3key) => removes cached guid", done=>{ 
         (async function() { try {
             var v = new Voice({
                 tts: new TestTTS(),
@@ -130,7 +130,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTexample", done=>{
+    it("example", done=>{
         (async function() { try {
             var v = new Voice(CFGPATH);
             var request = {
