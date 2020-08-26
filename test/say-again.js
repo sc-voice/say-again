@@ -35,6 +35,32 @@
         }
     }
 
+    function validate00C6(say, req, res) {
+        var { hits, misses } = say;
+        should.deepEqual(Object.keys(res), [
+            "request", "s3key", "response",
+        ]);
+        var {
+            request,
+            s3key,
+            response,
+        } = res;
+        should({hits,misses}).properties({hits:0, misses:1});
+        should.deepEqual(request, req);
+        should(s3key).equal(
+            "hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
+        should.deepEqual(Object.keys(response), [
+            "mime", "usage", "base64",
+        ]);
+        should(response.usage).equal(34);
+        should(response.mime).equal("audio/mpeg");
+        var actual = response.base64;
+        var expected = fs.readFileSync(MP300C6).toString('base64');
+        var n = 200;
+        should(actual.substring(0,n)).equal(expected.substring(0,n));
+        should(actual.slice(-n)).equal(expected.slice(-n));
+}
+
     it("default ctor", ()=>{
         var say = new SayAgain();
         should(say).properties({
@@ -47,8 +73,9 @@
         });
         should(say.awsConfig).instanceOf(AwsConfig);
     });
-    it("custom ctor", ()=>{
+    it("TESTTESTcustom ctor", ()=>{
         var awsConfig = new AwsConfig();
+        var tts = new TestTTS();
         var say = new SayAgain({
             awsConfig,
             hits: 911, // ignored
@@ -57,6 +84,7 @@
             initialized: 911, // ignored
             verbose: true,
             ignoreCache: true,
+            tts,
         });
         should(say).properties({
             verbose: true,
@@ -65,6 +93,7 @@
             errors: 0,
             initialized: undefined,
             ignoreCache: true,
+            tts,
         });
         should(say.awsConfig).equal(awsConfig);
     });
@@ -87,7 +116,7 @@
         should(say.s3Key(req))
             .equal("hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
     });
-    it("speak(req) => cached TTS", done=>{ 
+    it("TESTTESTspeak(req) => cached response", done=>{
         (async function() { try {
             var say = new SayAgain({
                 ignoreCache: true,
@@ -97,37 +126,29 @@
 
             // first request will ignore cache and call tts
             var res1 = await say.speak(req);
-            var { hits, misses } = say;
-            should.deepEqual(Object.keys(res1), [
-                "request", "s3key", "response",
-            ]);
-            var {
-                request,
-                s3key,
-                response,
-            } = res1;
-            should({hits,misses}).properties({hits:0, misses:1});
-            should.deepEqual(request, req);
-            should(s3key).equal(
-                "hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
-            should.deepEqual(Object.keys(response), [
-                "mime", "usage", "base64",
-            ]);
-            should(response.usage).equal(34);
-            should(response.mime).equal("audio/mpeg");
-            var actual = response.base64;
-            var expected = fs.readFileSync(MP300C6).toString('base64');
-            var n = 200;
-            should(actual.substring(0,n)).equal(expected.substring(0,n));
-            should(actual.slice(-n)).equal(expected.slice(-n));
+            validate00C6(say, req, res1);
 
             // second request should be cached
             say.ignoreCache = false;
-            var res2 = await say.speak(request);
+            var res2 = await say.speak(req);
             var { hits, misses } = say;
             should.deepEqual(res2, res1);
             should({hits,misses}).properties({hits:1, misses:1});
 
+            done();
+        } catch(e) {done(e);}})();
+    });
+    it("TESTTESTinject custom TTS engine", done=>{
+        (async function() { try {
+            var tts = new TestTTS();
+            var say = new SayAgain({
+                ignoreCache: true,
+                tts,
+                awsConfig,
+            });
+            var req = JSON.parse(fs.readFileSync(JSON00C6));
+            var res = await say.speak(req);
+            validate00C6(say, req, res);
             done();
         } catch(e) {done(e);}})();
     });
