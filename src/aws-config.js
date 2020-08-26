@@ -1,8 +1,7 @@
 (function(exports) {
     const fs = require("fs");
-    const path = require("path");
 
-    class S3Config {
+    class AwsConfig {
         constructor(arg) {
             var opts = typeof arg === 'string'
                 ? { configPath: arg }
@@ -34,12 +33,13 @@
                 region,
                 secretAccessKey,
                 accessKeyId,
+                Bucket: "say-again.say-again",
                 apiVersion: "2006-03-01",
                 endpoint: "https://s3.us-west-1.amazonaws.com",
             }, fileCfg.s3, opts.s3);
         }
     } 
 
-    module.exports = exports.S3Config = S3Config;
+    module.exports = exports.AwsConfig = AwsConfig;
 })(typeof exports === "object" ? exports : (exports = {}));
 

@@ -36,7 +36,7 @@
             var that = this;
             if (request.api !== "aws-polly") {
                 return Promise.reject(new Error(
-                    `expected api:aws-polly ${JSON.stringify(request)}`));
+                    `expected api:aws-polly request:${JSON.stringify(request)}`));
             }
             var { text, voice, language, audioFormat } = request;
             var pbody = (resolve, reject) => { (async function() { try {

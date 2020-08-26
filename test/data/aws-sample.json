@@ -7,6 +7,7 @@
     "apiVersion": "2016-06-10"
   },
   "s3": {
+    "Bucket": "say-again.MY_APPLICATION",
     "apiVersion": "2006-03-01",
     "endpoint": "https://s3.us-west-1.amazonaws.com"
   }
