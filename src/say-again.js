@@ -6,12 +6,16 @@
     const { MerkleJson } = require("merkle-json");
     const AwsConfig = require('./aws-config');
     const TtsPolly = require('./tts-polly');
+    const LogInstance = require('./log-instance');
 
     class SayAgain {
         constructor(opts = {}) {
             if (opts instanceof AwsConfig) {
                 opts = { awsConfig: opts };
             }
+            var logger = opts.logger || new LogInstance();
+            logger.logInstance(this);
+
             // options
             this.mj = new MerkleJson({
                 hashTag: "guid",
@@ -40,7 +44,6 @@
                 return that.initialized;
             }
             var { verbose, awsConfig } = that;
-            verbose && console.log(`SayAgain.initialize()`, {verbose, bucketName});
             var pbody = (resolve, reject) => (async function() { try {
                 var tts = that.tts = that.tts || new TtsPolly(awsConfig.polly);
                 var s3 = that.s3 = that.s3 || new AWS.S3(awsConfig.s3);
@@ -56,11 +59,13 @@
                         }
                     }
                     var res = await s3.createBucket(params).promise();
-                    console.log(`createBucket`, res);
+                    verbose && that.log(
+                        `SayAgain.initialize() createBucket ${Bucket}`, 
+                        res);
                 }
                 resolve(that);
             } catch(e) { 
-                console.error(e.message);
+                that.error(e.message);
                 reject(e); 
             } })();
             that.initialized = new Promise(pbody);
@@ -180,7 +185,7 @@
 
                     resolve(response);
                 } else if (err) {
-                    console.error(e);
+                    that.error(e);
                     that.errors++;
                     reject(e);
                 }

@@ -6,6 +6,7 @@
     const { MerkleJson } = require("merkle-json");
     const {
         AwsConfig,
+        LogInstance,
         TtsPolly,
         SayAgain,
     } = require('../index');
@@ -35,6 +36,12 @@
         }
     }
 
+    class TestLogger extends LogInstance {
+        info(...args) {
+            super.info('custom-test', ...args);
+        }
+    }
+
     function validate00C6(say, req, res) {
         var { hits, misses } = say;
         should.deepEqual(Object.keys(res), [
@@ -59,7 +66,7 @@
         var n = 200;
         should(actual.substring(0,n)).equal(expected.substring(0,n));
         should(actual.slice(-n)).equal(expected.slice(-n));
-}
+    }
 
     it("default ctor", ()=>{
         var say = new SayAgain();
@@ -72,10 +79,12 @@
             ignoreCache: undefined,
         });
         should(say.awsConfig).instanceOf(AwsConfig);
+        should(say.logger).instanceOf(LogInstance);
     });
-    it("TESTTESTcustom ctor", ()=>{
+    it("custom ctor", ()=>{
         var awsConfig = new AwsConfig();
         var tts = new TestTTS();
+        var logger = new TestLogger();
         var say = new SayAgain({
             awsConfig,
             hits: 911, // ignored
@@ -85,6 +94,7 @@
             verbose: true,
             ignoreCache: true,
             tts,
+            logger,
         });
         should(say).properties({
             verbose: true,
@@ -96,6 +106,17 @@
             tts,
         });
         should(say.awsConfig).equal(awsConfig);
+
+        // Verify custom logger
+        should(say.logger).instanceOf(LogInstance);
+        say.log('test-log');
+        const timestamp = logger.lastInfo[0];
+        should.deepEqual(logger.lastInfo, [
+            timestamp,      // LogInstance 
+            'I',            // LogInstance
+            'custom-test',  // TestLogger
+            'test-log',     // LogInstance
+        ]);
     });
     it("initialize() is required", done=>{ 
         (async function() { try {
@@ -116,7 +137,7 @@
         should(say.s3Key(req))
             .equal("hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
     });
-    it("TESTTESTspeak(req) => cached response", done=>{
+    it("speak(req) => cached response", done=>{
         (async function() { try {
             var say = new SayAgain({
                 ignoreCache: true,
@@ -138,7 +159,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTinject custom TTS engine", done=>{
+    it("inject custom TTS engine", done=>{
         (async function() { try {
             var tts = new TestTTS();
             var say = new SayAgain({
