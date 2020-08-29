@@ -61,7 +61,6 @@
                     that.usage += RequestCharacters;
                     resolve({
                         mime: ContentType,
-                        usage: RequestCharacters,
                         base64: AudioStream.toString('base64'),
                     });
                 } catch (e) {

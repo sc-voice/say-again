@@ -41,7 +41,7 @@ var v = new SayAgain(CFGPATH);
 var res = await v.speak(request);
 // { 
 //   request, 
-//   s3key, 
+//   s3Key, 
 //   response: {
 //     mime: "audio/mpeg",
 //     base64: "..."

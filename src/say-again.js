@@ -72,13 +72,13 @@
             return that.initialized;
         }
 
-        getEntry(s3key) {
+        getEntry(s3Key) {
             var that = this;
             var pbody = (resolve, reject) => { (async function() { try {
                 var { bucketName, s3 } = await that.initialize();
                 var params = {
                     Bucket: bucketName,
-                    Key: s3key,
+                    Key: s3Key,
                 }
                 try {
                     var res = await s3.getObject(params).promise();
@@ -95,14 +95,14 @@
             return new Promise(pbody);
         }
 
-        deleteEntry(s3key) {
+        deleteEntry(s3Key) {
             var that = this;
             var pbody = (resolve, reject) => { (async function() { try {
                 var { bucketName, s3 } = await that.initialize();
-                var Body = await that.getEntry(s3key);
+                var Body = await that.getEntry(s3Key);
                 var params = {
                     Bucket: bucketName,
-                    Key: s3key,
+                    Key: s3Key,
                 };
                 var res = await s3.deleteObject(params).promise();
                 resolve(Body);
@@ -123,15 +123,15 @@
             var that = this;
             var pbody = (resolve, reject) => { (async function() { try {
                 var { bucketName, s3 } = await that.initialize();
-                var s3key = that.s3Key(request);
+                var s3Key = that.s3Key(request);
                 var Body = JSON.stringify({
                     request,
-                    s3key,
+                    s3Key,
                     response,
                 });
                 var s3opts = {
                     Bucket: bucketName,
-                    Key: s3key,
+                    Key: s3Key,
                     Body,
                 };
                 await s3.putObject(s3opts).promise();
@@ -150,10 +150,10 @@
                 var { 
                     ignoreCache, mj, tts, bucketName, s3 
                 } = await that.initialize();
-                var s3key = that.s3Key(request);
+                var s3Key = that.s3Key(request);
                 var params = {
                     Bucket: bucketName,
-                    Key: s3key,
+                    Key: s3Key,
                 };
                 var err;
                 var res;
@@ -171,19 +171,19 @@
                     that.misses++;
                     res = tts && await tts.speak(request);
 
-                    var response = {
+                    var resSpeak = {
                         request,
-                        s3key,
+                        s3Key,
                         response: res,
                     };
                     var s3opts = {
                         Bucket: bucketName,
-                        Key: s3key,
-                        Body: JSON.stringify(response),
+                        Key: s3Key,
+                        Body: JSON.stringify(resSpeak),
                     };
                     await s3.putObject(s3opts).promise();
 
-                    resolve(response);
+                    resolve(resSpeak);
                 } else if (err) {
                     that.error(e);
                     that.errors++;

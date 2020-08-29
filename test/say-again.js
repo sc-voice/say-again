@@ -28,7 +28,6 @@
                 var base64 = fs.readFileSync(MP300C6).toString('base64');
                 return Promise.resolve({
                     mime: 'audio/mpeg',
-                    usage: 34,
                     base64,
                 });
             }
@@ -45,21 +44,20 @@
     function validate00C6(say, req, res) {
         var { hits, misses } = say;
         should.deepEqual(Object.keys(res), [
-            "request", "s3key", "response",
+            "request", "s3Key", "response",
         ]);
         var {
             request,
-            s3key,
+            s3Key,
             response,
         } = res;
         should({hits,misses}).properties({hits:0, misses:1});
         should.deepEqual(request, req);
-        should(s3key).equal(
+        should(s3Key).equal(
             "hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
         should.deepEqual(Object.keys(response), [
-            "mime", "usage", "base64",
+            "mime", "base64",
         ]);
-        should(response.usage).equal(34);
         should(response.mime).equal("audio/mpeg");
         var actual = response.base64;
         var expected = fs.readFileSync(MP300C6).toString('base64');
@@ -137,7 +135,7 @@
         should(say.s3Key(req))
             .equal("hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
     });
-    it("speak(req) => cached response", done=>{
+    it("TESTTESTspeak(req) => cached response", done=>{
         (async function() { try {
             var say = new SayAgain({
                 ignoreCache: true,
@@ -148,6 +146,7 @@
             // first request will ignore cache and call tts
             var res1 = await say.speak(req);
             validate00C6(say, req, res1);
+            should(say.tts.usage).equal(34);
 
             // second request should be cached
             say.ignoreCache = false;
@@ -173,18 +172,18 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("deleteEntry(s3key) => removes cached guid", done=>{ 
+    it("deleteEntry(s3Key) => removes cached guid", done=>{ 
         (async function() { try {
             var say = new SayAgain(awsConfig);
             var guid = "00c6495507e72cd16a6f992c15b92c95";
-            var s3key = `hi-IN/Aditi/00/${guid}.json`;
+            var s3Key = `hi-IN/Aditi/00/${guid}.json`;
             var request = JSON.parse(fs.readFileSync(JSON00C6));
-            var res = await say.deleteEntry(s3key);
+            var res = await say.deleteEntry(s3Key);
             if (res) {
                 // deleteEntry returns deleted entry
-                should(res).properties(["request", "s3key", "response"]);
+                should(res).properties(["request", "s3Key", "response"]);
                 should.deepEqual(res.request, request);
-                should.deepEqual(res.s3key, s3key);
+                should.deepEqual(res.s3Key, s3Key);
                 var actual = res.response.base64;
                 var expected = fs.readFileSync(MP300C6).toString('base64');
                 var n = 200;
@@ -192,7 +191,7 @@
                 should(actual.slice(-n)).equal(expected.slice(-n));
 
                 // deleteEntry of non-existent entry returns null
-                res = await say.deleteEntry(s3key);
+                res = await say.deleteEntry(s3Key);
                 should(res).equal(null);
             }
 
@@ -209,8 +208,8 @@
         (async function() { try {
             var say = new SayAgain(awsConfig);
             var guid = "00c6495507e72cd16a6f992c15b92c95";
-            var s3key = `hi-IN/Aditi/00/${guid}.json`;
-            await say.deleteEntry(s3key);
+            var s3Key = `hi-IN/Aditi/00/${guid}.json`;
+            await say.deleteEntry(s3Key);
             var request = JSON.parse(fs.readFileSync(JSON00C6));
             var response = fs.readFileSync(MP300C6).toString("base64");
             var res = await say.preload(request, {
@@ -238,7 +237,7 @@
             }
             var res = await say.speak(request);
             should.deepEqual(res.request, request);
-            should(res.s3key)
+            should(res.s3Key)
                 .equal('en-GB/Amy/d5/d55689bac089ac2e607efd53efe0d499.json');
             var buf = Buffer.from(res.response.base64, "base64");
             fs.writeFileSync(HELLOPATH, buf);

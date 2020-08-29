@@ -79,9 +79,8 @@
             var tts = new TtsPolly({configPath:CFGPATH});
             var request = JSON.parse(fs.readFileSync(JSON00C6));
             var res = await tts.speak(request);
-            should.deepEqual(Object.keys(res), ["mime", "usage", "base64"]);
+            should.deepEqual(Object.keys(res), ["mime", "base64"]);
             should(tts.usage).equal(34); // $4.00 / million
-            should(res.usage).equal(34);
             should(res.mime).equal("audio/mpeg");
             var actual = res.base64;
             var expected = fs.readFileSync(MP300C6).toString('base64');
