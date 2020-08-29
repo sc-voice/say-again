@@ -3,8 +3,9 @@
         any: -2,
         debug: -1,
         info: 0,
-        error: 1,
-        none: 2,
+        warn: 1,
+        error: 2,
+        none: 3,
     }
 
     class LogInstance {
@@ -13,6 +14,7 @@
             this.level = opts.level || "info";
             this.lastDebug = undefined;
             this.lastInfo = undefined;
+            this.lastWarn = undefined;
             this.lastError = undefined;
         }
 
@@ -42,6 +44,13 @@
             }
         }
 
+        warn(...args) {
+            if (LEVELS[this.level] <= LEVELS.warn) {
+                this.lastWarn = [this.timestamp(), 'WARN', ...args];
+                console.log.apply(undefined, this.lastWarn);
+            }
+        }
+
         error(...args) {
             if (LEVELS[this.level] <= LEVELS.error) {
                 this.lastError = [this.timestamp(), 'ERROR', ...args];
@@ -49,15 +58,38 @@
             }
         }
 
-        logInstance(obj) {
+        logInstance(inst, opts={}) {
             var that = this;
-            Object.defineProperty(obj, 'logger', {
+            let logLevel = opts.hasOwnProperty("logLevel")
+                ? opts.logLevel 
+                : 'info';
+            let addName = opts.addName !== false;
+            Object.defineProperty(inst, "logLevel", {
+                enumerable: false,
+                writable: true,
+                value: logLevel,
+            });
+            Object.defineProperty(inst, 'logger', {
                 value: that,
             });
-            Object.defineProperty(obj, 'log', {
-                value: function(...args) {
+            Object.defineProperty(inst, 'log', {
+                value: (...args)=>{
+                    let name = inst.name || inst.constructor.name;
+                    let level = inst.logLevel;
+                    args = args.slice();
+                    addName && (args[0] = `${name}: ${args[0]}`);
                     that.info.apply(that, args);
-                }
+                },
+                /*
+                value: (...args) => {
+                    let name = inst.name || inst.constructor.name;
+                    let level = inst.logLevel;
+                    args = args.slice();
+                    addName && (args[0] = `${name}: ${args[0]}`);
+                    level && _logger[level] .apply(_logger, args);
+                    return level;
+                },
+                */
             });
         }
     } 
