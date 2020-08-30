@@ -6,10 +6,10 @@
     const { MerkleJson } = require("merkle-json");
     const {
         AwsConfig,
-        LogInstance,
         TtsPolly,
         SayAgain,
     } = require('../index');
+    const { LogInstance } = require("log-instance");
     const TESTDATA = path.join(__dirname, 'data');
     const JSON00C6 = `${TESTDATA}/00c6495507e72cd16a6f992c15b92c95.json`;
     const MP300C6 = `${TESTDATA}/00c6495507e72cd16a6f992c15b92c95.mp3`;
@@ -36,8 +36,8 @@
     }
 
     class TestLogger extends LogInstance {
-        info(...args) {
-            super.info('custom-test', ...args);
+        _log(handlerLevel, logLevel, args) {
+            super._log(handlerLevel, logLevel, ["custom-test", ...args]);
         }
     }
 
@@ -79,7 +79,7 @@
         should(say.awsConfig).instanceOf(AwsConfig);
         should(say.logger).instanceOf(LogInstance);
     });
-    it("custom ctor", ()=>{
+    it("TESTTESTcustom ctor", ()=>{
         var awsConfig = new AwsConfig();
         var tts = new TestTTS();
         var logger = new TestLogger();
@@ -106,14 +106,14 @@
         should(say.awsConfig).equal(awsConfig);
 
         // Verify custom logger
-        should(say.logger).instanceOf(LogInstance);
+        should(say.logger).equal(logger);
         say.log('test-log');
-        const timestamp = logger.lastInfo[0];
-        should.deepEqual(logger.lastInfo, [
-            timestamp,      // LogInstance 
-            'I',            // LogInstance
-            'custom-test',  // TestLogger
-            'test-log',     // LogInstance
+        const timestamp = logger.last.info[0];
+        should.deepEqual(logger.last.info, [
+            timestamp,              // LogInstance 
+            'I',                    // LogInstance
+            'custom-test',          // TestLogger
+            'SayAgain: test-log',   // LogInstance
         ]);
     });
     it("initialize() is required", done=>{ 
