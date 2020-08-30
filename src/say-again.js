@@ -35,6 +35,8 @@
             this.hits = 0;
             this.misses = 0;
             this.errors = 0;
+            this.s3Reads = 0;
+            this.s3Writes = 0;
             this.initialized = undefined;
         }
 
@@ -72,6 +74,15 @@
             return that.initialized;
         }
 
+        s3Key(request={}) {
+            var {language,voice,guid} = request;
+            guid = guid || this.mj.hash(request);
+            var guidDir = guid.substring(0,2);
+            language = language || 'any-lang';
+            voice = voice || 'any-voice';
+            return `${language}/${voice}/${guidDir}/${guid}.json`;
+        }
+
         getEntry(s3Key) {
             var that = this;
             var pbody = (resolve, reject) => { (async function() { try {
@@ -81,6 +92,7 @@
                     Key: s3Key,
                 }
                 try {
+                    that.s3Reads++;
                     var res = await s3.getObject(params).promise();
                     var Body = JSON.parse(res.Body);
                 } catch(e) {
@@ -104,39 +116,69 @@
                     Bucket: bucketName,
                     Key: s3Key,
                 };
+                that.s3Writes++;
                 var res = await s3.deleteObject(params).promise();
                 resolve(Body);
             } catch(e) {reject(e);}})()};
             return new Promise(pbody);
         }
 
-        s3Key(request={}) {
-            var {language,voice,guid} = request;
-            guid = guid || this.mj.hash(request);
-            var guidDir = guid.substring(0,2);
-            language = language || 'any-lang';
-            voice = voice || 'any-voice';
-            return `${language}/${voice}/${guidDir}/${guid}.json`;
+        putEntry(s3Key, s3Value) {
+            var that = this;
+            if (s3Value.s3Key !== s3Key) {
+                return Promise.reject(new Error(
+                    `s3Key expected ${s3Key} actual:${s3Value.s3Key}`));
+            }
+            var pbody = (resolve, reject) => { (async function() { try {
+                var { mj, bucketName, s3 } = await that.initialize();
+                var exists = true;
+                try {
+                    let params = {
+                        Bucket: bucketName,
+                        Key: s3Key,
+                    };
+                    that.s3Reads++;
+                    let res = await s3.getObject(params).promise();
+                    var oldS3Value = JSON.parse(res.Body);
+                    if (mj.hash(s3Value) !== mj.hash(oldS3Value)) {
+                        that.log(`${s3Key} has changed`); 
+                        exists = false;
+                    }
+                } catch(e) {
+                    if (e.code === "NoSuchKey") {
+                        exists = false;
+                    } else {
+                        throw e;
+                    }
+                }
+                if (!exists) {
+                    var s3opts = {
+                        Bucket: bucketName,
+                        Key: s3Key,
+                        Body: JSON.stringify(s3Value),
+                    };
+                    that.s3Writes++;
+                    var res = await s3.putObject(s3opts).promise();
+                }
+
+                resolve({
+                    s3Key,
+                    updated: !exists,
+                });
+            } catch(e) {reject(e);}})()};
+            return new Promise(pbody);
         }
 
         preload(request, response) {
             var that = this;
             var pbody = (resolve, reject) => { (async function() { try {
-                var { bucketName, s3 } = await that.initialize();
                 var s3Key = that.s3Key(request);
-                var Body = JSON.stringify({
+                var s3Value = {
                     request,
                     s3Key,
                     response,
-                });
-                var s3opts = {
-                    Bucket: bucketName,
-                    Key: s3Key,
-                    Body,
                 };
-                await s3.putObject(s3opts).promise();
-
-                resolve(Body);
+                resolve(await that.putEntry(s3Key, s3Value));
             } catch(e) {reject(e);}})()};
             return new Promise(pbody);
         }
@@ -159,6 +201,7 @@
                 var res;
                 try {
                     if (!ignoreCache) {
+                        that.s3Reads++;
                         res = await s3.getObject(params).promise();
                         that.hits++;
                         var json = JSON.parse(res.Body);
@@ -181,6 +224,7 @@
                         Key: s3Key,
                         Body: JSON.stringify(resSpeak),
                     };
+                    that.s3Writes++;
                     await s3.putObject(s3opts).promise();
 
                     resolve(resSpeak);

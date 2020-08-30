@@ -20,6 +20,7 @@
     // See test/data/aws-sample.json for an example
     const CFGPATH = path.join(__dirname, '..', 'local', 'aws.json');
     const awsConfig = new AwsConfig(CFGPATH);
+    this.timeout(10*1000);
 
     class TestTTS {
         speak(request) {
@@ -66,13 +67,15 @@
         should(actual.slice(-n)).equal(expected.slice(-n));
     }
 
-    it("default ctor", ()=>{
+    it("TESTTESTdefault ctor", ()=>{
         var say = new SayAgain();
         should(say).properties({
             verbose: undefined,
             hits: 0,
             misses: 0,
             errors: 0,
+            s3Reads: 0,
+            s3Writes: 0,
             initialized: undefined,
             ignoreCache: undefined,
         });
@@ -204,27 +207,66 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("preload(req,res) => preloads S3 cache", done=>{ 
+    it("TESTTESTpreload(req,res) => preloads S3 cache", done=>{ 
         (async function() { try {
             var say = new SayAgain(awsConfig);
-            var guid = "00c6495507e72cd16a6f992c15b92c95";
-            var s3Key = `hi-IN/Aditi/00/${guid}.json`;
-            await say.deleteEntry(s3Key);
             var request = JSON.parse(fs.readFileSync(JSON00C6));
-            var response = fs.readFileSync(MP300C6).toString("base64");
-            var res = await say.preload(request, {
-                request,
-                response,
-            });
 
-            // first request will use preloaded
-            var res = await say.speak(request);
+            // response1 is valid TTS response
+            var s3Key = say.s3Key(request);
+            await say.deleteEntry(s3Key);
+            should(say.s3Writes).equal(1);
+            var { response: response1 } = await say.speak(request);
+            should(say.s3Writes).equal(2);
+            should(say.s3Reads).equal(2);
             var { hits, misses } = say;
-            should.deepEqual({hits,misses},{hits:1,misses:0});
+
+            // preload a different TTS response
+            var response2 = {
+                mime: "audio/mpeg",
+                base64: "something-different",
+            }
+            var res = await say.preload(request, response2);
+            should(say.s3Writes).equal(3);
+            should.deepEqual(res, {
+                s3Key,
+                updated: true,
+            });
+            var resSpeak = await say.speak(request);
+            should(say.hits).equal(hits+1);
+            should(say.misses).equal(misses);
+            should(resSpeak.response.mime).equal(response2.mime);
+            should(resSpeak.response.base64).equal(response2.base64);
+
+            // Redundant preloads are ignored to avoid S3 write costs
+            var res = await say.preload(request, response2);
+            should.deepEqual(res, {
+                s3Key,
+                updated: false,
+            });
+            var res = await say.speak(request);
+            should(say.s3Writes).equal(3);
+            should(say.hits).equal(hits+2);
+            should(say.misses).equal(misses);
+            should(res.response.base64).equal("something-different");
+
+            // restore valid TTS response
+            var res = await say.preload(request, response1);
+            should.deepEqual(res, {
+                s3Key,
+                updated: true,
+            });
+            should(say.s3Writes).equal(4);
+            var res = await say.speak(request);
+            should(say.s3Writes).equal(4);
+            should(say.hits).equal(hits+3);
+            should(say.misses).equal(misses);
+            should(res.response.base64).equal(response1.base64);
+
             done();
         } catch(e) {done(e);}})();
     });
-    it("example", done=>{
+    it("TESTTESTexample", done=>{
         (async function() { try {
             var say = new SayAgain(awsConfig);
             var request = {
@@ -239,8 +281,11 @@
             should.deepEqual(res.request, request);
             should(res.s3Key)
                 .equal('en-GB/Amy/d5/d55689bac089ac2e607efd53efe0d499.json');
-            var buf = Buffer.from(res.response.base64, "base64");
-            fs.writeFileSync(HELLOPATH, buf);
+            var base64 = fs.readFileSync(HELLOPATH).toString("base64");
+            should.deepEqual(res.response, {
+                mime: "audio/mpeg",
+                base64,
+            });
             done();
         } catch(e) {done(e);}})();
     });
