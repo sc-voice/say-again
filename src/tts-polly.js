@@ -9,8 +9,7 @@
 
     class TtsPolly {
         constructor(opts = {}) {
-            this.logger = opts.logger || logger;
-            logger.logInstance(this);
+            (opts.logger || logger).logInstance(this);
             this.awsConfig = opts.awsConfig || new AwsConfig(opts);
             this.polly = opts.polly;
             this.usage = 0;

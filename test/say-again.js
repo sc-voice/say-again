@@ -4,13 +4,12 @@
     const should = require("should");
     const AWS = require("aws-sdk");
     const { MerkleJson } = require("merkle-json");
-    const { logger } = require('log-instance');
+    const { logger, LogInstance } = require('log-instance');
     const {
         AwsConfig,
         TtsPolly,
         SayAgain,
     } = require('../index');
-    const { LogInstance } = require("log-instance");
     const TESTDATA = path.join(__dirname, 'data');
     const JSON00C6 = `${TESTDATA}/00c6495507e72cd16a6f992c15b92c95.json`;
     const MP300C6 = `${TESTDATA}/00c6495507e72cd16a6f992c15b92c95.mp3`;
@@ -69,7 +68,7 @@
         should(actual.slice(-n)).equal(expected.slice(-n));
     }
 
-    it("default ctor", ()=>{
+    it("TESTTESTdefault ctor", ()=>{
         var say = new SayAgain();
         should(say).properties({
             verbose: undefined,
@@ -83,6 +82,7 @@
         });
         should(say.awsConfig).instanceOf(AwsConfig);
         should(say.logger).instanceOf(LogInstance);
+        should(say.logger).equal(logger);
     });
     it("custom ctor", ()=>{
         var awsConfig = new AwsConfig();
@@ -140,7 +140,7 @@
         should(say.s3Key(req))
             .equal("hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
     });
-    it("TESTTESTspeak(req) => cached response", done=>{
+    it("speak(req) => cached response", done=>{
         (async function() { try {
             var say = await new SayAgain({
                 ignoreCache: true,

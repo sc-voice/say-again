@@ -6,15 +6,14 @@
     const { MerkleJson } = require("merkle-json");
     const AwsConfig = require('./aws-config');
     const TtsPolly = require('./tts-polly');
-    const { LogInstance } = require('log-instance');
+    const { logger } = require('log-instance');
 
     class SayAgain {
         constructor(opts = {}) {
             if (opts instanceof AwsConfig) {
                 opts = { awsConfig: opts };
             }
-            var logger = opts.logger || LogInstance.singleton;
-            logger.logInstance(this);
+            (opts.logger || logger).logInstance(this);
 
             // options
             this.mj = new MerkleJson({

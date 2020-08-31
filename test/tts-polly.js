@@ -15,9 +15,10 @@
     const MP300C6 = `${TESTDATA}/00c6495507e72cd16a6f992c15b92c95.mp3`;
     const mj = new MerkleJson({hashTag: "guid"});
     const awsConfig = new AwsConfig({configPath:CFGPATH});
+    const { logger, LogInstance } = require('log-instance');
     this.timeout(5*1000);
 
-    it("default ctor", ()=>{
+    it("TESTTESTdefault ctor", ()=>{
         /////////////// TEST ONLY (BEGIN)
         // Save and set environment
         var {
@@ -44,6 +45,8 @@
             usage: 0,
         });
         should(tts.polly).equal(undefined);
+        should(tts.logger).instanceOf(LogInstance);
+        should(tts.logger).equal(logger);
         should(tts.awsConfig).instanceOf(AwsConfig);
         should(tts.awsConfig.s3).properties({
             secretAccessKey: "env_secretAccessKey",
