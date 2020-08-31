@@ -4,6 +4,7 @@
     const should = require("should");
     const AWS = require("aws-sdk");
     const { MerkleJson } = require("merkle-json");
+    const { logger } = require('log-instance');
     const {
         AwsConfig,
         TtsPolly,
@@ -21,6 +22,7 @@
     const CFGPATH = path.join(__dirname, '..', 'local', 'aws.json');
     const awsConfig = new AwsConfig(CFGPATH);
     this.timeout(10*1000);
+    logger.level = 'warn';
 
     class TestTTS {
         speak(request) {
@@ -67,7 +69,7 @@
         should(actual.slice(-n)).equal(expected.slice(-n));
     }
 
-    it("TESTTESTdefault ctor", ()=>{
+    it("default ctor", ()=>{
         var say = new SayAgain();
         should(say).properties({
             verbose: undefined,
@@ -82,7 +84,7 @@
         should(say.awsConfig).instanceOf(AwsConfig);
         should(say.logger).instanceOf(LogInstance);
     });
-    it("TESTTESTcustom ctor", ()=>{
+    it("custom ctor", ()=>{
         var awsConfig = new AwsConfig();
         var tts = new TestTTS();
         var logger = new TestLogger();
@@ -140,14 +142,17 @@
     });
     it("TESTTESTspeak(req) => cached response", done=>{
         (async function() { try {
-            var say = new SayAgain({
+            var say = await new SayAgain({
                 ignoreCache: true,
                 awsConfig,
-            });
+            }).initialize();
+            var { tts } = say;
             var req = JSON.parse(fs.readFileSync(JSON00C6));
 
             // first request will ignore cache and call tts
+            tts.logLevel = 'info';
             var res1 = await say.speak(req);
+            should(logger.lastLog()).match(/cetanā.*ssml.*mp3.*Aditi/);
             validate00C6(say, req, res1);
             should(say.tts.usage).equal(34);
 
@@ -207,7 +212,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTpreload(req,res) => preloads S3 cache", done=>{ 
+    it("preload(req,res) => preloads S3 cache", done=>{ 
         (async function() { try {
             var say = new SayAgain(awsConfig);
             var request = JSON.parse(fs.readFileSync(JSON00C6));
@@ -266,7 +271,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTexample", done=>{
+    it("example", done=>{
         (async function() { try {
             var say = new SayAgain(awsConfig);
             var request = {

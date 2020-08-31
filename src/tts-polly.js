@@ -5,9 +5,12 @@
     const pkg = require("../package.json");
     const AwsConfig = require("./aws-config");
     const { MerkleJson } = require("merkle-json");
+    const { logger } = require('log-instance');
 
     class TtsPolly {
         constructor(opts = {}) {
+            this.logger = opts.logger || logger;
+            logger.logInstance(this);
             this.awsConfig = opts.awsConfig || new AwsConfig(opts);
             this.polly = opts.polly;
             this.usage = 0;
@@ -51,6 +54,7 @@
                 }
 
                 try {
+                    that.log(`polly.synthesizeSpeech()()`, JSON.stringify(pollyArgs));
                     var res = await polly.synthesizeSpeech(pollyArgs)
                         .promise();
                     var {
