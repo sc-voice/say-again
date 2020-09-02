@@ -77,6 +77,24 @@
             done();
         } catch(e) {done(e);}})();
     });
+    it("TESTTESTspeak(request) => cached TTS", done=>{ 
+        (async function() { try {
+            var tts = new TtsPolly({configPath:CFGPATH});
+            var request = JSON.parse(fs.readFileSync(JSON00C6));
+            request.api = "invalid-api";
+            var eCaught;
+            logger.error("//////////////// EXPECTED ERROR (BEGIN)");
+            try {
+                var res = await tts.speak(request);
+            } catch(e) {
+                eCaught = e;
+            }
+            should(eCaught.message).match(/expected api:aws-polly/);
+            should(logger.lastLog('error')).match(/expected api:aws-polly/);
+            logger.error("//////////////// EXPECTED ERROR (END)");
+            done();
+        } catch(e) {done(e);}})();
+    });
     it("speak(request) => cached TTS", done=>{ 
         (async function() { try {
             var tts = new TtsPolly({configPath:CFGPATH});

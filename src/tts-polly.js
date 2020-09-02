@@ -36,12 +36,12 @@
 
         speak(request={}) {
             var that = this;
-            if (request.api !== "aws-polly") {
-                return Promise.reject(new Error(
-                    `expected api:aws-polly request:${JSON.stringify(request)}`));
-            }
             var { text, voice, language, audioFormat } = request;
             var pbody = (resolve, reject) => { (async function() { try {
+                if (request.api !== "aws-polly") {
+                    throw new Error(
+                        `expected api:aws-polly request:${JSON.stringify(request)}`);
+                }
                 await that.initialize();
                 var { polly } = that;
                 var pollyArgs = {
@@ -67,10 +67,13 @@
                         base64: AudioStream.toString('base64'),
                     });
                 } catch (e) {
-                    logger.error(`TtsPolly.speak()`, e.message);
+                    that.error(`polly.synthesizeSpeech()`, e.message);
                     reject(e);
                 }
-            } catch(e) {reject(e);}})()};
+            } catch(e) {
+                that.error(e.message);
+                reject(e);
+            }})()};
             return new Promise(pbody);
         }
 
