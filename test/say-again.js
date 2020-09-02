@@ -331,21 +331,21 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("speak() rejects errors", done=>{
+    it("TESTTESTspeak() rejects errors", done=>{
         (async function() { try {
             var say = await new SayAgain({
                 ignoreCache: true,
                 awsConfig,
             }).initialize();
             var { tts } = say;
-            var req = JSON.parse(fs.readFileSync(JSON00C6));
-            req.text = req.text.substring(1); // invalid SSML
-            logger.error("///////// EXPECTED ERROR (BEGIN)");
 
             tts.logLevel = 'info';
             var eCaught;
             var res;
+            var req = JSON.parse(fs.readFileSync(JSON00C6));
+            logger.error("///////// EXPECTED ERROR (BEGIN)");
             try {
+                req.text = req.text.substring(1); // invalid SSML
                 res = await say.speak(req);
             } catch(e) {
                 eCaught = e;
@@ -353,6 +353,19 @@
             should(eCaught).instanceOf(Error);
             should(eCaught.message).match('Invalid SSML request');
             should(logger.lastLog('error')).match(/Invalid SSML request/);
+            logger.error("///////// EXPECTED ERROR (END)");
+
+            logger.error("///////// EXPECTED ERROR (BEGIN)");
+            var req = JSON.parse(fs.readFileSync(JSON00C6));
+            try {
+                req.api = 'invalid-api';
+                res = await say.speak(req);
+            } catch(e) {
+                eCaught = e;
+            }
+            should(eCaught).instanceOf(Error);
+            should(eCaught.message).match(/expected api:aws-polly/);
+            should(logger.lastLog('error')).match(/expected api:aws-polly/);
             logger.error("///////// EXPECTED ERROR (END)");
 
             done();

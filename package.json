@@ -1,6 +1,6 @@
 {
   "name": "say-again",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Cached service for sayings worth repeating",
   "author": "Karl Lew",
   "private": false,

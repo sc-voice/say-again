@@ -27,7 +27,7 @@
                 }
                 resolve(that);
             } catch(e) { 
-                console.error(e.message);
+                that.error(e.message);
                 reject(e); 
             } })();
             that._initialized = new Promise(pbody);

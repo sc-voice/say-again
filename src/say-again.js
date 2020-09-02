@@ -71,7 +71,7 @@
                 }
                 resolve(that);
             } catch(e) { 
-                logger.error(e.message);
+                that.error(e.message);
                 reject(e); 
             } })();
             that.initialized = new Promise(pbody);
@@ -233,12 +233,12 @@
 
                     resolve(resSpeak);
                 } else if (err) {
-                    logger.error(e);
+                    that.error(e);
                     that.errors++;
                     reject(e);
                 }
             } catch(e) {
-                logger.error(`SayAgain.speak()`, e.message);
+                that.error(`SayAgain.speak()`, e.message);
                 reject(e);
             }})()};
             return new Promise(pbody);
