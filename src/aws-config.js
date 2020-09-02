@@ -2,10 +2,8 @@
     const fs = require("fs");
 
     class AwsConfig {
-        constructor(arg) {
-            var opts = typeof arg === 'string'
-                ? { configPath: arg }
-                : arg || {};
+        constructor(arg={}) {
+            var opts = typeof arg === 'string' ? {configPath: arg} : arg;
             var { configPath } = opts;
             var fileCfg = fs.existsSync(configPath)
                 ? JSON.parse(fs.readFileSync(configPath))
@@ -15,11 +13,14 @@
                 accessKeyId: process.env.aws_config_accessKeyId,
                 secretAccessKey: process.env.aws_config_secretAccessKey,
             }
+            var props = Object.assign({}, envCfg, fileCfg, opts);
+            delete props.configPath;
             var {
                 region,
                 secretAccessKey,
                 accessKeyId,
-            } = Object.assign({}, envCfg, fileCfg, opts);
+                sayAgain,
+            } = Object.assign(this, props);
 
             this.polly = Object.assign({
                 region,
@@ -33,10 +34,13 @@
                 region,
                 secretAccessKey,
                 accessKeyId,
-                Bucket: "say-again.say-again",
                 apiVersion: "2006-03-01",
                 endpoint: "https://s3.us-west-1.amazonaws.com",
             }, fileCfg.s3, opts.s3);
+
+            this.sayAgain = Object.assign({
+                Bucket: "say-again.say-again",
+            }, sayAgain);
         }
     } 
 

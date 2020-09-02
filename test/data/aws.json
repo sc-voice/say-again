@@ -2,6 +2,12 @@
   "region": "test-region",
   "secretAccessKey": "test_secretAccessKey",
   "accessKeyId": "test_accessKeyId",
+  "myApp": {
+    "color": "red"
+  },
+  "sayAgain": {
+    "Bucket": "say-again.test"
+  },
   "polly": {
     "signatureVersion": "test_polly_signatureVersion",
     "apiVersion": "test_polly_apiVersion"

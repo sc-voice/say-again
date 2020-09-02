@@ -53,7 +53,7 @@
                 );
                 var tts = that.tts = that.tts || new TtsPolly(ttsOpts);
                 var s3 = that.s3 = that.s3 || new AWS.S3(awsConfig.s3);
-                var { Bucket } = awsConfig.s3;
+                var { Bucket } = awsConfig.sayAgain;
                 that.bucketName = Bucket;
                 var buckets = (await s3.listBuckets().promise()).Buckets;
                 var bucket = buckets.filter(b=>b.Name === Bucket)[0];
