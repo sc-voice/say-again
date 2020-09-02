@@ -68,7 +68,7 @@
         should(actual.slice(-n)).equal(expected.slice(-n));
     }
 
-    it("TESTTESTdefault ctor", ()=>{
+    it("default ctor", ()=>{
         var say = new SayAgain();
         should(say).properties({
             verbose: undefined,
@@ -113,13 +113,7 @@
         // Verify custom logger
         should(say.logger).equal(logger);
         say.log('test-log');
-        const timestamp = logger.last.info[0];
-        should.deepEqual(logger.last.info, [
-            timestamp,              // LogInstance 
-            'I',                    // LogInstance
-            'custom-test',          // TestLogger
-            'SayAgain: test-log',   // LogInstance
-        ]);
+        should(logger.lastLog()).match(/ I custom-test SayAgain: test-log/);
     });
     it("initialize() is required", done=>{ 
         (async function() { try {
@@ -134,13 +128,50 @@
             done();
         } catch(e) {done(e);}})();
     });
+    it("TESTTESTtts logLevel follows sayAgain", done=>{
+        (async function() { try {
+            // clear lastLog
+            var logLevel = logger.logLevel;
+            logger.logLevel = 'debug';
+            logger.debug('debug.none');
+            logger.info('info.none');
+            logger.warn('warn.none');
+            logger.error('error.none');
+            logger.logLevel = 'warn'; // ignore info and debug
+
+            var say = await new SayAgain(awsConfig).initialize();
+            should(say.logger).equal(logger);
+            should(say.tts.logger).equal(say);
+            say.logLevel = 'info'; // ignore debug
+            say.info('Say info');
+            should(logger.lastLog('info')).match(/Say info/);
+
+            // TtsPolly module inside SayAgain should log 
+            // according to SayAgain logLevel
+            should(say.tts.logLevel).equal(false); // follow SayAgain
+            say.tts.info('Tts info');
+            should(logger.lastLog('info')).match(/Tts info/);
+
+            // TtsPolly module can have its own level
+            say.tts.logLevel = 'debug';
+            logger.debug("Logger debug"); // ignored by logger logLevel
+            should(logger.lastLog('debug')).match(/debug.none/);
+            say.log('Say debug'); // ignored by say logLevel
+            should(logger.lastLog('debug')).match(/debug.none/);
+            say.tts.debug('Tts debug'); // allowed by tts logLevel
+            should(logger.lastLog('debug')).match(/Tts debug/);
+
+            logger.logLevel = logLevel;
+            done();
+        } catch(e) {done(e);}})();
+    });
     it("s3Key(req) => s3 storage key", ()=>{
         var req = JSON.parse(fs.readFileSync(JSON00C6));
         var say = new SayAgain(awsConfig);
         should(say.s3Key(req))
             .equal("hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
     });
-    it("speak(req) => cached response", done=>{
+    it("TESTTESTspeak(req) => cached response", done=>{
         (async function() { try {
             var say = await new SayAgain({
                 ignoreCache: true,
@@ -149,10 +180,16 @@
             var { tts } = say;
             var req = JSON.parse(fs.readFileSync(JSON00C6));
 
+            // clear last debug message
+            var logLevel = logger.logLevel;
+            logger.logLevel = 'debug';
+            logger.debug('no-debug-message'); 
+            logger.logLevel = logLevel;
+
             // first request will ignore cache and call tts
-            tts.logLevel = 'info';
+            say.logLevel = 'debug';
             var res1 = await say.speak(req);
-            should(logger.lastLog()).match(/cetanā.*ssml.*mp3.*Aditi/);
+            should(logger.lastLog('debug')).match(/RequestCharacters:34/);
             validate00C6(say, req, res1);
             should(say.tts.usage).equal(34);
 
@@ -291,6 +328,33 @@
                 mime: "audio/mpeg",
                 base64,
             });
+            done();
+        } catch(e) {done(e);}})();
+    });
+    it("speak() rejects errors", done=>{
+        (async function() { try {
+            var say = await new SayAgain({
+                ignoreCache: true,
+                awsConfig,
+            }).initialize();
+            var { tts } = say;
+            var req = JSON.parse(fs.readFileSync(JSON00C6));
+            req.text = req.text.substring(1); // invalid SSML
+            logger.error("///////// EXPECTED ERROR (BEGIN)");
+
+            tts.logLevel = 'info';
+            var eCaught;
+            var res;
+            try {
+                res = await say.speak(req);
+            } catch(e) {
+                eCaught = e;
+            }
+            should(eCaught).instanceOf(Error);
+            should(eCaught.message).match('Invalid SSML request');
+            should(logger.lastLog('error')).match(/Invalid SSML request/);
+            logger.error("///////// EXPECTED ERROR (END)");
+
             done();
         } catch(e) {done(e);}})();
     });

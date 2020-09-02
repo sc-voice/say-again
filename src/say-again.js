@@ -13,9 +13,10 @@
             if (opts instanceof AwsConfig) {
                 opts = { awsConfig: opts };
             }
+            // options
+            this.name = opts.name || this.constructor.name;
             (opts.logger || logger).logInstance(this);
 
-            // options
             this.mj = new MerkleJson({
                 hashTag: "guid",
             });
@@ -46,7 +47,11 @@
             }
             var { verbose, awsConfig } = that;
             var pbody = (resolve, reject) => (async function() { try {
-                var tts = that.tts = that.tts || new TtsPolly(awsConfig.polly);
+                var ttsOpts = Object.assign({},
+                    awsConfig.polly,
+                    {logger:that},
+                );
+                var tts = that.tts = that.tts || new TtsPolly(ttsOpts);
                 var s3 = that.s3 = that.s3 || new AWS.S3(awsConfig.s3);
                 var { Bucket } = awsConfig.s3;
                 that.bucketName = Bucket;
@@ -66,7 +71,7 @@
                 }
                 resolve(that);
             } catch(e) { 
-                that.error(e.message);
+                logger.error(e.message);
                 reject(e); 
             } })();
             that.initialized = new Promise(pbody);
@@ -228,11 +233,14 @@
 
                     resolve(resSpeak);
                 } else if (err) {
-                    that.error(e);
+                    logger.error(e);
                     that.errors++;
                     reject(e);
                 }
-            } catch(e) {reject(e);}})()};
+            } catch(e) {
+                logger.error(`SayAgain.speak()`, e.message);
+                reject(e);
+            }})()};
             return new Promise(pbody);
         }
 

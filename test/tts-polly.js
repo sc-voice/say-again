@@ -18,7 +18,7 @@
     const { logger, LogInstance } = require('log-instance');
     this.timeout(5*1000);
 
-    it("TESTTESTdefault ctor", ()=>{
+    it("default ctor", ()=>{
         /////////////// TEST ONLY (BEGIN)
         // Save and set environment
         var {

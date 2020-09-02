@@ -53,20 +53,21 @@
                 }
 
                 try {
-                    that.log(`polly.synthesizeSpeech()()`, JSON.stringify(pollyArgs));
-                    var res = await polly.synthesizeSpeech(pollyArgs)
-                        .promise();
+                    that.info(`polly.synthesizeSpeech()`, JSON.stringify(pollyArgs));
+                    var res = await polly.synthesizeSpeech(pollyArgs).promise();
                     var {
                         ContentType,
                         RequestCharacters,
                         AudioStream,
                     } = res;
+                    that.debug(`polly.synthesizeSpeech() RequestCharacters:${RequestCharacters}`);
                     that.usage += RequestCharacters;
                     resolve({
                         mime: ContentType,
                         base64: AudioStream.toString('base64'),
                     });
                 } catch (e) {
+                    logger.error(`TtsPolly.speak()`, e.message);
                     reject(e);
                 }
             } catch(e) {reject(e);}})()};
