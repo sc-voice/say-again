@@ -16,7 +16,7 @@
                 opts = { awsConfig: opts };
             }
             // options
-            this.name = opts.name || `${this.constructor.name}-${++instance}`;
+            this.name = opts.name || `${this.constructor.name}_${++instance}`;
             (opts.logger || logger).logInstance(this);
 
             this.mj = new MerkleJson({

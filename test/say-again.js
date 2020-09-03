@@ -68,7 +68,7 @@
         should(actual.slice(-n)).equal(expected.slice(-n));
     }
 
-    it("default ctor", ()=>{
+    it("TESTTESTdefault ctor", ()=>{
         var say = new SayAgain();
         should(say).properties({
             verbose: undefined,
@@ -80,9 +80,15 @@
             initialized: undefined,
             ignoreCache: undefined,
         });
+        should(say.name).match(/^SayAgain_[0-9]+$/);
         should(say.awsConfig).instanceOf(AwsConfig);
         should(say.logger).instanceOf(LogInstance);
         should(say.logger).equal(logger);
+
+        // Default instance name suffix is the instance count
+        var say2 = new SayAgain();
+        should(Number(say2.name.split('_')[1]))
+            .equal(Number(say.name.split('_')[1])+1);
     });
     it("TESTTESTcustom ctor", ()=>{
         var awsConfig = new AwsConfig();
