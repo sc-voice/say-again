@@ -84,11 +84,12 @@
         should(say.logger).instanceOf(LogInstance);
         should(say.logger).equal(logger);
     });
-    it("custom ctor", ()=>{
+    it("TESTTESTcustom ctor", ()=>{
         var awsConfig = new AwsConfig();
         var tts = new TestTTS();
         var logger = new TestLogger();
         var say = new SayAgain({
+            name: "Test-SayAgain",
             awsConfig,
             hits: 911, // ignored
             misses: 911, // ignored
@@ -113,7 +114,7 @@
         // Verify custom logger
         should(say.logger).equal(logger);
         say.log('test-log');
-        should(logger.lastLog()).match(/ I custom-test SayAgain: test-log/);
+        should(logger.lastLog()).match(/ I custom-test Test-SayAgain: test-log/);
     });
     it("initialize() is required", done=>{ 
         (async function() { try {
@@ -175,6 +176,7 @@
         (async function() { try {
             var logger = new LogInstance();
             var say = await new SayAgain({
+                name: "Test-SayAgain",
                 ignoreCache: true,
                 logger,
                 awsConfig,
@@ -186,7 +188,7 @@
             say.logLevel = 'debug';
             var res1 = await say.speak(req);
             should(logger.lastLog('info'))
-                .match(/SayAgain: speak\(\) misses:1 hits:0 usage:34/)
+                .match(/Test-SayAgain: speak\(\) misses:1 hits:0 usage:34/)
                 .match(/00c6495507e72cd16a6f992c15b92c95.json/);
             should(logger.lastLog('debug'))
                 .match(/TtsPolly: polly.synthesizeSpeech\(\)/);

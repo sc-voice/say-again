@@ -8,13 +8,15 @@
     const TtsPolly = require('./tts-polly');
     const { logger } = require('log-instance');
 
+    var instance = 0;
+
     class SayAgain {
         constructor(opts = {}) {
             if (opts instanceof AwsConfig) {
                 opts = { awsConfig: opts };
             }
             // options
-            this.name = opts.name || this.constructor.name;
+            this.name = opts.name || `${this.constructor.name}-${++instance}`;
             (opts.logger || logger).logInstance(this);
 
             this.mj = new MerkleJson({
