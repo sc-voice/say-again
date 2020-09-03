@@ -120,7 +120,9 @@
         // Verify custom logger
         should(say.logger).equal(logger);
         say.log('test-log');
-        should(logger.lastLog()).match(/ I custom-test Test-SayAgain: test-log/);
+        should(logger.lastLog())
+            .match(/ I custom-test/)
+            .match(/Test-SayAgain: test-log/);
     });
     it("initialize() is required", done=>{ 
         (async function() { try {
