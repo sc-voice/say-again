@@ -208,6 +208,13 @@
                         that.s3Reads++;
                         res = await s3.getObject(params).promise();
                         that.hits++;
+                        that.info("speak()", 
+                            `hits:${that.hits}`,
+                            `misses:${that.misses}`,
+                            `usage:${tts.usage}`,
+                            `${s3Key}`,
+                            request.text,
+                        );
                         var json = JSON.parse(res.Body);
                         resolve(json);
                     }
@@ -216,7 +223,16 @@
                 }
                 if (!res || err && err.code === 'NoSuchKey') {
                     that.misses++;
-                    res = tts && await tts.speak(request);
+                    if (tts) {
+                        res = await tts.speak(request);
+                        that.info("speak()", 
+                            `misses:${that.misses}`,
+                            `hits:${that.hits}`,
+                            `usage:${tts.usage}`,
+                            `${s3Key}`,
+                            request.text,
+                        );
+                    }
 
                     var resSpeak = {
                         request,

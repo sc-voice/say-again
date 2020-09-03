@@ -77,7 +77,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTspeak(request) => cached TTS", done=>{ 
+    it("speak(request) => handles invalid input", done=>{ 
         (async function() { try {
             var tts = new TtsPolly({configPath:CFGPATH});
             var request = JSON.parse(fs.readFileSync(JSON00C6));

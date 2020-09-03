@@ -47,7 +47,7 @@
             "region": "env_region",
         });
     });
-    it("TESTTESTctor({configPath})", ()=>{
+    it("ctor({configPath})", ()=>{
         // configuration path is ctor option
         var awsCfg = new AwsConfig({configPath: TESTCFG});
         should.deepEqual(Object.keys(awsCfg).sort(), [

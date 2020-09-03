@@ -53,21 +53,22 @@
                 }
 
                 try {
-                    that.info(`polly.synthesizeSpeech()`, JSON.stringify(pollyArgs));
+                    that.debug(`polly.synthesizeSpeech()`, JSON.stringify(pollyArgs));
                     var res = await polly.synthesizeSpeech(pollyArgs).promise();
                     var {
                         ContentType,
                         RequestCharacters,
                         AudioStream,
                     } = res;
-                    that.debug(`polly.synthesizeSpeech() RequestCharacters:${RequestCharacters}`);
                     that.usage += RequestCharacters;
                     resolve({
                         mime: ContentType,
                         base64: AudioStream.toString('base64'),
                     });
                 } catch (e) {
-                    that.error(`polly.synthesizeSpeech()`, e.message);
+                    that.error(`polly.synthesizeSpeech()`, 
+                        JSON.stringify(pollyArgs,null,2),
+                        e.message);
                     reject(e);
                 }
             } catch(e) {
