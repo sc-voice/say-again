@@ -62,7 +62,10 @@
                 that.bucketName = Bucket;
                 var buckets = (await s3.listBuckets().promise()).Buckets;
                 var bucket = buckets.filter(b=>b.Name === Bucket)[0];
-                if (!bucket) {
+                if (bucket) {
+                    that.log(`initialize() Bucket:${Bucket}`,
+                        `objects:${buckets.length}`);
+                } else {
                     var params = {
                         Bucket,
                         CreateBucketConfiguration: {
@@ -70,9 +73,7 @@
                         }
                     }
                     var res = await s3.createBucket(params).promise();
-                    verbose && that.log(
-                        `SayAgain.initialize() createBucket ${Bucket}`, 
-                        res);
+                    that.log(`initialize() createBucket:${Bucket}`, res);
                 }
                 resolve(that);
             } catch(e) { 
