@@ -63,8 +63,7 @@
                 var buckets = (await s3.listBuckets().promise()).Buckets;
                 var bucket = buckets.filter(b=>b.Name === Bucket)[0];
                 if (bucket) {
-                    that.log(`initialize() Bucket:${Bucket}`,
-                        `objects:${buckets.length}`);
+                    that.log(`initialize() Bucket:${JSON.stringify(bucket)}`);
                 } else {
                     var params = {
                         Bucket,
@@ -228,17 +227,15 @@
                     err = e;
                 }
                 if (!res || err && err.code === 'NoSuchKey') {
+                    res = await tts.speak(request);
                     that.misses++;
-                    if (tts) {
-                        res = await tts.speak(request);
-                        that.info("speak()", 
-                            `misses:${that.misses}`,
-                            `hits:${that.hits}`,
-                            `usage:${tts.usage}`,
-                            `${s3Key}`,
-                            request.text,
-                        );
-                    }
+                    that.info("speak()", 
+                        `misses:${that.misses}`,
+                        `hits:${that.hits}`,
+                        `usage:${tts.usage}`,
+                        `${s3Key}`,
+                        request.text,
+                    );
 
                     var resSpeak = {
                         request,
