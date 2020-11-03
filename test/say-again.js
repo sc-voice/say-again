@@ -180,41 +180,37 @@
         should(say.s3Key(req))
             .equal("hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
     });
-    it("TESTTESTspeak(req) => cached response", done=>{
-        (async function() { try {
-            var logger = new LogInstance();
-            var say = await new SayAgain({
-                name: "Test-SayAgain",
-                ignoreCache: true,
-                logger,
-                awsConfig,
-            }).initialize();
-            var { tts } = say;
-            var req = JSON.parse(fs.readFileSync(JSON00C6));
+    it("TESTTESTspeak(req) => cached response", async()=>{
+        var logger = new LogInstance();
+        var say = await new SayAgain({
+            name: "Test-SayAgain",
+            ignoreCache: true,
+            logger,
+            awsConfig,
+        }).initialize();
+        var { tts } = say;
+        var req = JSON.parse(fs.readFileSync(JSON00C6));
 
-            // first request will ignore cache and call tts
-            say.logLevel = 'debug';
-            var res1 = await say.speak(req);
-            should(logger.lastLog('info'))
-                .match(/Test-SayAgain: speak\(\) misses:1 hits:0 usage:34/)
-                .match(/00c6495507e72cd16a6f992c15b92c95.json/);
-            should(logger.lastLog('debug'))
-                .match(/TtsPolly: polly.synthesizeSpeech\(\)/);
-            validate00C6(say, req, res1);
-            should(say.tts.usage).equal(34);
+        // first request will ignore cache and call tts
+        say.logLevel = 'debug';
+        var res1 = await say.speak(req);
+        should(logger.lastLog('info'))
+            .match(/Test-SayAgain: speak\(\) misses:1 hits:0 usage:34/)
+            .match(/00c6495507e72cd16a6f992c15b92c95.json/);
+        should(logger.lastLog('debug'))
+            .match(/TtsPolly: polly.synthesizeSpeech\(\)/);
+        validate00C6(say, req, res1);
+        should(say.tts.usage).equal(34);
 
-            // second request should be cached
-            say.ignoreCache = false;
-            var res2 = await say.speak(req);
-            should(logger.lastLog('info'))
-                .match(/SayAgain: speak\(\) hits:1 misses:1 usage:34/)
-                .match(/00c6495507e72cd16a6f992c15b92c95.json/);
-            should.deepEqual(res2, res1);
-            var { hits, misses, errors } = say;
-            should({hits,misses,errors}).properties({hits:1, misses:1, errors:0});
-
-            done();
-        } catch(e) {done(e);}})();
+        // second request should be cached
+        say.ignoreCache = false;
+        var res2 = await say.speak(req);
+        should(logger.lastLog('debug'))
+            .match(/SayAgain: speak\(\) hits:1 misses:1 usage:34/)
+            .match(/00c6495507e72cd16a6f992c15b92c95.json/);
+        should.deepEqual(res2, res1);
+        var { hits, misses, errors } = say;
+        should({hits,misses,errors}).properties({hits:1, misses:1, errors:0});
     });
     it("inject custom TTS engine", done=>{
         (async function() { try {

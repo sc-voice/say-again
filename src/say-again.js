@@ -216,7 +216,7 @@
                         that.s3Reads++;
                         res = await s3.getObject(params).promise();
                         that.hits++;
-                        that.info("speak()", 
+                        that.debug("speak()", 
                             `hits:${that.hits}`,
                             `misses:${that.misses}`,
                             `usage:${tts.usage}`,
