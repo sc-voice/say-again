@@ -13,7 +13,7 @@
     const MP300C6 = `${TESTDATA}/00c6495507e72cd16a6f992c15b92c95.mp3`;
     const mj = new MerkleJson({hashTag: "guid"});
 
-    it("TESTTESTdefault ctor", ()=>{
+    it("default ctor", ()=>{
         /////////////// TEST ONLY (BEGIN)
         var {
             aws_config_region,

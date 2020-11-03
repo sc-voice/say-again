@@ -68,7 +68,7 @@
         should(actual.slice(-n)).equal(expected.slice(-n));
     }
 
-    it("TESTTESTdefault ctor", ()=>{
+    it("default ctor", ()=>{
         var say = new SayAgain();
         should(say).properties({
             verbose: undefined,
@@ -90,7 +90,7 @@
         should(Number(say2.name.split('_')[1]))
             .equal(Number(say.name.split('_')[1])+1);
     });
-    it("TESTTESTcustom ctor", ()=>{
+    it("custom ctor", ()=>{
         var awsConfig = new AwsConfig();
         var tts = new TestTTS();
         var logger = new TestLogger();

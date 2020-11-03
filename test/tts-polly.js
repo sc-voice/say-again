@@ -10,9 +10,11 @@
         SayAgain,
     } = require('../index');
     const TESTDATA = path.join(__dirname, 'data');
-    const CFGPATH = path.join(__dirname, '..', 'local', 'aws.json');
-    const JSON00C6 = `${TESTDATA}/00c6495507e72cd16a6f992c15b92c95.json`;
-    const MP300C6 = `${TESTDATA}/00c6495507e72cd16a6f992c15b92c95.mp3`;
+    const LOCALDIR = path.join(__dirname, '..', 'local');
+    const CFGPATH = path.join(LOCALDIR, 'aws.json');
+    const GUID00C6 = '00c6495507e72cd16a6f992c15b92c95';
+    const JSON00C6 = `${TESTDATA}/${GUID00C6}.json`;
+    const MP300C6 = `${TESTDATA}/${GUID00C6}.mp3`;
     const mj = new MerkleJson({hashTag: "guid"});
     const awsConfig = new AwsConfig({configPath:CFGPATH});
     const { logger, LogInstance } = require('log-instance');
@@ -95,22 +97,22 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("speak(request) => cached TTS", done=>{ 
-        (async function() { try {
-            var tts = new TtsPolly({configPath:CFGPATH});
-            var request = JSON.parse(fs.readFileSync(JSON00C6));
-            var res = await tts.speak(request);
-            should.deepEqual(Object.keys(res), ["mime", "base64"]);
-            should(tts.usage).equal(34); // $4.00 / million
-            should(res.mime).equal("audio/mpeg");
-            var actual = res.base64;
-            var expected = fs.readFileSync(MP300C6).toString('base64');
-            should(actual.length).equal(expected.length);
-            var n = 200;
-            should(actual.substring(0,n)).equal(expected.substring(0,n));
-            should(actual.slice(-n)).equal(expected.slice(-n));
-            done();
-        } catch(e) {done(e);}})();
+    it("TESTTESTspeak(request) => cached TTS", async()=>{
+        var tts = new TtsPolly({configPath:CFGPATH});
+        var request = JSON.parse(fs.readFileSync(JSON00C6));
+        var res = await tts.speak(request);
+        should.deepEqual(Object.keys(res), ["mime", "base64"]);
+        should(tts.usage).equal(34); // $4.00 / million
+        should(res.mime).equal("audio/mpeg");
+        var actual = res.base64;
+        var audio = Buffer.from(actual, 'base64');
+        var audioPath = path.join(LOCALDIR, `${GUID00C6}.mp3`);
+        fs.writeFileSync(audioPath, audio);
+        var expected = fs.readFileSync(MP300C6).toString('base64');
+        should(actual.length).equal(expected.length);
+        var n = 200;
+        should(actual.substring(0,n)).equal(expected.substring(0,n));
+        should(actual.slice(-n)).equal(expected.slice(-n));
     });
 
 })

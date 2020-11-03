@@ -63,7 +63,10 @@
                 var buckets = (await s3.listBuckets().promise()).Buckets;
                 var bucket = buckets.filter(b=>b.Name === Bucket)[0];
                 if (bucket) {
-                    that.log(`initialize() Bucket:${JSON.stringify(bucket)}`);
+                    that.log(`initialize() Bucket:${JSON.stringify(bucket)}`,
+                        `polly.AccessKeyId:${awsConfig.polly.accessKeyId}`,
+                        `s3.AccessKeyId:${awsConfig.s3.accessKeyId}`,
+                    );
                 } else {
                     var params = {
                         Bucket,
