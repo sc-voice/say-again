@@ -10,6 +10,15 @@
 
     var instance = 0;
 
+    function obfuscate(s) {
+        let suffixLen = 1;
+        let prefixLen = 1;
+        let prefix = s.slice(0,prefixLen);
+        let middle = s.slice(prefixLen,s.length-suffixLen).replace(/./ug, '*');
+        let suffix = s.slice(-suffixLen);
+        return prefix+middle+suffix;
+    }
+
     class SayAgain {
         constructor(opts = {}) {
             if (opts instanceof AwsConfig) {
@@ -64,8 +73,8 @@
                 var bucket = buckets.filter(b=>b.Name === Bucket)[0];
                 if (bucket) {
                     that.log(`initialize() Bucket:${JSON.stringify(bucket)}`,
-                        `polly.AccessKeyId:${awsConfig.polly.accessKeyId}`,
-                        `s3.AccessKeyId:${awsConfig.s3.accessKeyId}`,
+                        `polly.AccessKeyId:${obfuscate(awsConfig.polly.accessKeyId)}`,
+                        `s3.AccessKeyId:${obfuscate(awsConfig.s3.accessKeyId)}`,
                     );
                 } else {
                     var params = {
