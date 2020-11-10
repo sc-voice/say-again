@@ -18,7 +18,8 @@
 
     // Testing requires a configuration file in local/aws.json
     // See test/data/aws-sample.json for an example
-    const CFGPATH = path.join(__dirname, '..', 'local', 'aws.json');
+    const LOCALDIR = path.join(__dirname, '..', 'local');
+    const CFGPATH = path.join(LOCALDIR, 'aws.json');
     const awsConfig = new AwsConfig(CFGPATH);
     this.timeout(10*1000);
     logger.level = 'warn';
@@ -124,18 +125,17 @@
             .match(/ I custom-test/)
             .match(/Test-SayAgain: test-log/);
     });
-    it("initialize() is required", done=>{ 
-        (async function() { try {
-            var say = new SayAgain(awsConfig);
-            should(say.initialized).equal(undefined);
+    it("TESTTESTinitialize() is required", async()=>{
+        should(fs.existsSync(CFGPATH)).equal(true,
+            `Tests require AWS credentials stored in ${CFGPATH}`);
+        var say = new SayAgain(awsConfig);
+        should(say.initialized).equal(undefined);
 
-            // initialize executes once but can be called multiple times
-            should(await say.initialize()).equal(say);
-            should(await say.initialize()).equal(say); 
-            should(!!say.initialized).equal(true);
-            should(say.bucketName).equal(awsConfig.sayAgain.Bucket);
-            done();
-        } catch(e) {done(e);}})();
+        // initialize executes once but can be called multiple times
+        should(await say.initialize()).equal(say);
+        should(await say.initialize()).equal(say); 
+        should(!!say.initialized).equal(true);
+        should(say.bucketName).equal(awsConfig.sayAgain.Bucket);
     });
     it("tts logLevel follows sayAgain", done=>{
         (async function() { try {
@@ -317,28 +317,34 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("example", done=>{
-        (async function() { try {
-            var say = new SayAgain(awsConfig);
-            var request = {
-              "api": "aws-polly",
-              "apiVersion": "v4",
-              "audioFormat": "mp3",
-              "voice": "Amy",
-              "language": "en-GB",
-              "text": `<prosody rate="-30%" pitch="-10%">hello</prosody>`,
-            }
-            var res = await say.speak(request);
-            should.deepEqual(res.request, request);
-            should(res.s3Key)
-                .equal('en-GB/Amy/d5/d55689bac089ac2e607efd53efe0d499.json');
-            var base64 = fs.readFileSync(HELLOPATH).toString("base64");
-            should.deepEqual(res.response, {
-                mime: "audio/mpeg",
-                base64,
-            });
-            done();
-        } catch(e) {done(e);}})();
+    it("TESTTESTexample", async()=>{
+        var say = new SayAgain(awsConfig);
+        var request = {
+          "api": "aws-polly",
+          "apiVersion": "v4",
+          "audioFormat": "mp3",
+          "voice": "Amy",
+          "language": "en-GB",
+          "text": `<prosody rate="-30%" pitch="-10%">hello</prosody>`,
+        }
+        var res = await say.speak(request);
+        var m3path = path.join(LOCALDIR,'test-example.mp3');
+        fs.writeFileSync(m3path, Buffer.from(res.response.base64, 'base64'));
+        should.deepEqual(res.request, request);
+        should(res.s3Key)
+            .equal('en-GB/Amy/d5/d55689bac089ac2e607efd53efe0d499.json');
+        var base64 = fs.readFileSync(HELLOPATH).toString("base64");
+
+        /* 
+         * AWS Polly sometimes changes its voices.
+         * If the following test fails, verify that local/test-example.mp3
+         * sounds as expected (i.e., "hello"). If it is acceptable, 
+         * replace test/data/hello.mp3 with test-example.mp3 contents.
+         */
+        should.deepEqual(res.response, {
+            mime: "audio/mpeg",
+            base64,
+        });
     });
     it("speak() rejects errors", done=>{
         (async function() { try {

@@ -10,15 +10,6 @@
 
     var instance = 0;
 
-    function obfuscate(s) {
-        let suffixLen = 1;
-        let prefixLen = 1;
-        let prefix = s.slice(0,prefixLen);
-        let middle = s.slice(prefixLen,s.length-suffixLen).replace(/./ug, '*');
-        let suffix = s.slice(-suffixLen);
-        return prefix+middle+suffix;
-    }
-
     class SayAgain {
         constructor(opts = {}) {
             if (opts instanceof AwsConfig) {
@@ -54,6 +45,18 @@
             this.initialized = undefined;
         }
 
+        static obfuscate(s) {
+            if (s == null) {
+                return "(no-value)";
+            }
+            let suffixLen = 1;
+            let prefixLen = 1;
+            let prefix = s.slice(0,prefixLen);
+            let middle = s.slice(prefixLen,s.length-suffixLen).replace(/./ug, '*');
+            let suffix = s.slice(-suffixLen);
+            return prefix+middle+suffix;
+        }
+
         initialize() {
             var that = this;
             if (that.initialized) {
@@ -72,9 +75,11 @@
                 var buckets = (await s3.listBuckets().promise()).Buckets;
                 var bucket = buckets.filter(b=>b.Name === Bucket)[0];
                 if (bucket) {
-                    that.log(`initialize() Bucket:${JSON.stringify(bucket)}`,
-                        `polly.AccessKeyId:${obfuscate(awsConfig.polly.accessKeyId)}`,
-                        `s3.AccessKeyId:${obfuscate(awsConfig.s3.accessKeyId)}`,
+                    let pollyAccessKeyId = awsConfig.polly.accessKeyId;
+                    let s3AccessKeyId = awsConfig.s3.accessKeyId;
+                    that.info(`initialize() Bucket:${JSON.stringify(bucket)}`,
+                        `polly.AccessKeyId:${SayAgain.obfuscate(pollyAccessKeyId)}`,
+                        `s3.AccessKeyId:${SayAgain.obfuscate(s3AccessKeyId)}`,
                     );
                 } else {
                     var params = {
@@ -88,7 +93,7 @@
                 }
                 resolve(that);
             } catch(e) { 
-                that.error(e.message);
+                that.warn(`initialize()`, e.message);
                 reject(e); 
             } })();
             that.initialized = new Promise(pbody);
