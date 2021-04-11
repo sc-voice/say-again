@@ -180,7 +180,7 @@
         should(say.s3Key(req))
             .equal("hi-IN/Aditi/00/00c6495507e72cd16a6f992c15b92c95.json");
     });
-    it("TESTTESTspeak(req) => cached response", async()=>{
+    it("speak(req) => cached response", async()=>{
         var logger = new LogInstance();
         var say = await new SayAgain({
             name: "Test-SayAgain",
@@ -317,7 +317,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTexample", async()=>{
+    it("example", async()=>{
         var say = new SayAgain(awsConfig);
         var request = {
           "api": "aws-polly",

@@ -97,7 +97,7 @@
             done();
         } catch(e) {done(e);}})();
     });
-    it("TESTTESTspeak(request) => cached TTS", async()=>{
+    it("speak(request) => cached TTS", async()=>{
         var tts = new TtsPolly({configPath:CFGPATH});
         var request = JSON.parse(fs.readFileSync(JSON00C6));
         var res = await tts.speak(request);
