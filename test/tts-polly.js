@@ -1,5 +1,6 @@
 typeof describe === "function" &&
   describe("tts-polly", function () {
+    const running = require('why-is-node-running');
     const fs = require("fs");
     const path = require("path");
     const should = require("should");
@@ -16,6 +17,18 @@ typeof describe === "function" &&
     const awsConfig = new AwsConfig({ configPath: CFGPATH });
     const { logger, LogInstance } = require("log-instance");
     this.timeout(5 * 1000);
+
+    afterEach(()=>{
+      running({
+        error: (...args)=>{
+          if (args[1] === 0 ) {
+            // console.error.apply(null, args);
+          } else {
+            console.error.apply(null, args);
+          }
+        }
+      }); 
+    })
 
     it("default ctor", () => {
       /////////////// TEST ONLY (BEGIN)
@@ -58,50 +71,36 @@ typeof describe === "function" &&
         region: "env_region",
       });
     });
-    it("initialize() is required", (done) => {
-      (async function () {
-        try {
-          var tts = new TtsPolly(CFGPATH);
-          var res = await tts.initialize();
-          should(res).equal(tts);
+    it("initialize() is required", async()=>{
+      var tts = new TtsPolly(CFGPATH);
+      var res = await tts.initialize();
+      should(res).equal(tts);
 
-          // AWS default configuration is stored in CFGPATH
-          var json = JSON.parse(fs.readFileSync(CFGPATH));
-          Object.keys(json.polly || {}).forEach((k) => {
-            should(tts.polly.config[k]).equal(json.polly[k]);
-          });
+      // AWS default configuration is stored in CFGPATH
+      var json = JSON.parse(fs.readFileSync(CFGPATH));
+      Object.keys(json.polly || {}).forEach((k) => {
+        should(tts.polly.config[k]).equal(json.polly[k]);
+      });
 
-          // initialize executes once but can be called multiple times
-          should(await tts.initialize()).equal(tts);
-          done();
-        } catch (e) {
-          done(e);
-        }
-      })();
+      // initialize executes once but can be called multiple times
+      should(await tts.initialize()).equal(tts);
     });
-    it("speak(request) => handles invalid input", (done) => {
-      (async function () {
-        try {
-          var tts = new TtsPolly({ configPath: CFGPATH });
-          var request = JSON.parse(fs.readFileSync(JSON00C6));
-          request.api = "invalid-api";
-          var eCaught;
-          logger.error("//////////////// EXPECTED ERROR (BEGIN)");
-          try {
-            var res = await tts.speak(request);
-          } catch (e) {
-            eCaught = e;
-          }
-          should(eCaught.message).match(/expected api:aws-polly/);
-          should(logger.lastLog("error")).match(/expected api:aws-polly/);
-          logger.error("//////////////// EXPECTED ERROR (END)");
-          done();
-        } catch (e) {
-          done(e);
-        }
-      })();
+    it("quest) => handles invalid input", async()=>{
+      var tts = new TtsPolly({ configPath: CFGPATH });
+      var request = JSON.parse(fs.readFileSync(JSON00C6));
+      request.api = "invalid-api";
+      var eCaught;
+      logger.error("//////////////// EXPECTED ERROR (BEGIN)");
+      try {
+        var res = await tts.speak(request);
+      } catch (e) {
+        eCaught = e;
+      }
+      should(eCaught.message).match(/expected api:aws-polly/);
+      should(logger.lastLog("error")).match(/expected api:aws-polly/);
+      logger.error("//////////////// EXPECTED ERROR (END)");
     });
-    it("TESTTESTspeak(request) => cached TTS", async () => {
+    it("TESTTESspeak(request) => cached TTS", async ()=>{
       var tts = new TtsPolly({ configPath: CFGPATH });
       tts.logLevel = 'info';
       var request = JSON.parse(fs.readFileSync(JSON00C6));

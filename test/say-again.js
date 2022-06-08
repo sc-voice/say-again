@@ -1,5 +1,6 @@
 typeof describe === "function" &&
   describe("say-again", function () {
+    const running = require('why-is-node-running');
     const fs = require("fs");
     const path = require("path");
     const should = require("should");
@@ -20,6 +21,18 @@ typeof describe === "function" &&
     const awsConfig = new AwsConfig(CFGPATH);
     this.timeout(10 * 1000);
     logger.level = "warn";
+
+    afterEach(()=>{
+      running({
+        error: (...args)=>{
+          if (args[1] === 0 ) {
+            // console.error.apply(null, args);
+          } else {
+            console.error.apply(null, args);
+          }
+        }
+      }); 
+    })
 
     class TestTTS {
       speak(request) {
@@ -130,46 +143,39 @@ typeof describe === "function" &&
       should(!!say.initialized).equal(true);
       should(say.bucketName).equal(awsConfig.sayAgain.Bucket);
     });
-    it("tts logLevel follows sayAgain", (done) => {
-      (async function () {
-        try {
-          // clear lastLog
-          var logLevel = logger.logLevel;
-          logger.logLevel = "debug";
-          logger.debug("debug.none");
-          logger.info("info.none");
-          logger.warn("warn.none");
-          logger.error("error.none");
-          logger.logLevel = "warn"; // ignore info and debug
+    it("tts logLevel follows sayAgain", async()=>{
+      // clear lastLog
+      var logLevel = logger.logLevel;
+      logger.logLevel = "debug";
+      logger.debug("debug.none");
+      logger.info("info.none");
+      logger.warn("warn.none");
+      logger.error("error.none");
+      logger.logLevel = "warn"; // ignore info and debug
 
-          var say = await new SayAgain(awsConfig).initialize();
-          should(say.logger).equal(logger);
-          should(say.tts.logger).equal(say);
-          say.logLevel = "info"; // ignore debug
-          say.info("Say info");
-          should(logger.lastLog("info")).match(/Say info/);
+      var say = await new SayAgain(awsConfig).initialize();
+      should(say.logger).equal(logger);
+      should(say.tts.logger).equal(say);
+      say.logLevel = "info"; // ignore debug
+      say.info("Say info");
+      should(logger.lastLog("info")).match(/Say info/);
 
-          // TtsPolly module inside SayAgain should log
-          // according to SayAgain logLevel
-          should(say.tts.logLevel).equal(false); // follow SayAgain
-          say.tts.info("Tts info");
-          should(logger.lastLog("info")).match(/Tts info/);
+      // TtsPolly module inside SayAgain should log
+      // according to SayAgain logLevel
+      should(say.tts.logLevel).equal(false); // follow SayAgain
+      say.tts.info("Tts info");
+      should(logger.lastLog("info")).match(/Tts info/);
 
-          // TtsPolly module can have its own level
-          say.tts.logLevel = "debug";
-          logger.debug("Logger debug"); // ignored by logger logLevel
-          should(logger.lastLog("debug")).match(/debug.none/);
-          say.log("Say debug"); // ignored by say logLevel
-          should(logger.lastLog("debug")).match(/debug.none/);
-          say.tts.debug("Tts debug"); // allowed by tts logLevel
-          should(logger.lastLog("debug")).match(/Tts debug/);
+      // TtsPolly module can have its own level
+      say.tts.logLevel = "debug";
+      logger.debug("Logger debug"); // ignored by logger logLevel
+      should(logger.lastLog("debug")).match(/debug.none/);
+      say.log("Say debug"); // ignored by say logLevel
+      should(logger.lastLog("debug")).match(/debug.none/);
+      say.tts.debug("Tts debug"); // allowed by tts logLevel
+      should(logger.lastLog("debug")).match(/Tts debug/);
 
-          logger.logLevel = logLevel;
-          done();
-        } catch (e) {
-          done(e);
-        }
-      })();
+      logger.logLevel = logLevel;
     });
     it("s3Key(req) => s3 storage key", () => {
       var req = JSON.parse(fs.readFileSync(JSON00C6));
@@ -215,122 +221,100 @@ typeof describe === "function" &&
         errors: 0,
       });
     });
-    it("inject custom TTS engine", (done) => {
-      (async function () {
-        try {
-          var tts = new TestTTS();
-          var say = new SayAgain({
-            ignoreCache: true,
-            tts,
-            awsConfig,
-          });
-          var req = JSON.parse(fs.readFileSync(JSON00C6));
-          var res = await say.speak(req);
-          validate00C6(say, req, res);
-          done();
-        } catch (e) {
-          done(e);
-        }
-      })();
+    it("inject custom TTS engine", async()=>{
+      var tts = new TestTTS();
+      var say = new SayAgain({
+        ignoreCache: true,
+        tts,
+        awsConfig,
+      });
+      var req = JSON.parse(fs.readFileSync(JSON00C6));
+      var res = await say.speak(req);
+      validate00C6(say, req, res);
     });
-    it("deleteEntry(s3Key) => removes cached guid", (done) => {
-      (async function () {
-        try {
-          var say = new SayAgain(awsConfig);
-          var guid = "00c6495507e72cd16a6f992c15b92c95";
-          var s3Key = `hi-IN/Aditi/00/${guid}.json`;
-          var request = JSON.parse(fs.readFileSync(JSON00C6));
-          var res = await say.deleteEntry(s3Key);
-          if (res) {
-            // deleteEntry returns deleted entry
-            should(res).properties(["request", "s3Key", "response"]);
-            should.deepEqual(res.request, request);
-            should.deepEqual(res.s3Key, s3Key);
-            var actual = res.response.base64;
-            var expected = fs.readFileSync(MP300C6).toString("base64");
-            var n = 200;
-            should(actual.substring(0, n)).equal(expected.substring(0, n));
-            should(actual.slice(-n)).equal(expected.slice(-n));
+    it("deleteEntry(s3Key) => removes cached guid", async()=>{
+      var say = new SayAgain(awsConfig);
+      var guid = "00c6495507e72cd16a6f992c15b92c95";
+      var s3Key = `hi-IN/Aditi/00/${guid}.json`;
+      var request = JSON.parse(fs.readFileSync(JSON00C6));
+      var res = await say.deleteEntry(s3Key);
+      if (res) {
+        // deleteEntry returns deleted entry
+        should(res).properties(["request", "s3Key", "response"]);
+        should.deepEqual(res.request, request);
+        should.deepEqual(res.s3Key, s3Key);
+        var actual = res.response.base64;
+        var expected = fs.readFileSync(MP300C6).toString("base64");
+        var n = 200;
+        should(actual.substring(0, n)).equal(expected.substring(0, n));
+        should(actual.slice(-n)).equal(expected.slice(-n));
 
-            // deleteEntry of non-existent entry returns null
-            res = await say.deleteEntry(s3Key);
-            should(res).equal(null);
-          }
+        // deleteEntry of non-existent entry returns null
+        res = await say.deleteEntry(s3Key);
+        should(res).equal(null);
+      }
 
-          // first request will regenerate
-          var { hits, misses } = say;
-          should({ hits, misses }).properties({ hits: 0, misses: 0 });
-          var res = await say.speak(request);
-          var { hits, misses } = say;
-          should({ hits, misses }).properties({ hits: 0, misses: 1 });
-          done();
-        } catch (e) {
-          done(e);
-        }
-      })();
+      // first request will regenerate
+      var { hits, misses } = say;
+      should({ hits, misses }).properties({ hits: 0, misses: 0 });
+      var res = await say.speak(request);
+      var { hits, misses } = say;
+      should({ hits, misses }).properties({ hits: 0, misses: 1 });
     });
-    it("preload(req,res) => preloads S3 cache", (done) => {
-      (async function () {
-        try {
-          var say = new SayAgain(awsConfig);
-          var request = JSON.parse(fs.readFileSync(JSON00C6));
+    it("preload(req,res) => preloads S3 cache", async()=>{
+      var say = new SayAgain(awsConfig);
+      var request = JSON.parse(fs.readFileSync(JSON00C6));
 
-          // response1 is valid TTS response
-          var s3Key = say.s3Key(request);
-          await say.deleteEntry(s3Key);
-          should(say.s3Writes).equal(1);
-          var { response: response1 } = await say.speak(request);
-          should(say.s3Writes).equal(2);
-          should(say.s3Reads).equal(2);
-          var { hits, misses } = say;
+      // response1 is valid TTS response
+      var s3Key = say.s3Key(request);
+      await say.deleteEntry(s3Key);
+      should(say.s3Writes).equal(1);
+      var { response: response1 } = await say.speak(request);
+      should(say.s3Writes).equal(2);
+      should(say.s3Reads).equal(2);
+      var { hits, misses } = say;
 
-          // preload a different TTS response
-          var response2 = {
-            mime: "audio/mpeg",
-            base64: "something-different",
-          };
-          var res = await say.preload(request, response2);
-          should(say.s3Writes).equal(3);
-          should.deepEqual(res, {
-            s3Key,
-            updated: true,
-          });
-          var resSpeak = await say.speak(request);
-          should(say.hits).equal(hits + 1);
-          should(say.misses).equal(misses);
-          should(resSpeak.response.mime).equal(response2.mime);
-          should(resSpeak.response.base64).equal(response2.base64);
+      // preload a different TTS response
+      var response2 = {
+        mime: "audio/mpeg",
+        base64: "something-different",
+      };
+      var res = await say.preload(request, response2);
+      should(say.s3Writes).equal(3);
+      should.deepEqual(res, {
+        s3Key,
+        updated: true,
+      });
+      var resSpeak = await say.speak(request);
+      should(say.hits).equal(hits + 1);
+      should(say.misses).equal(misses);
+      should(resSpeak.response.mime).equal(response2.mime);
+      should(resSpeak.response.base64).equal(response2.base64);
 
-          // Redundant preloads are ignored to avoid S3 write costs
-          var res = await say.preload(request, response2);
-          should.deepEqual(res, {
-            s3Key,
-            updated: false,
-          });
-          var res = await say.speak(request);
-          should(say.s3Writes).equal(3);
-          should(say.hits).equal(hits + 2);
-          should(say.misses).equal(misses);
-          should(res.response.base64).equal("something-different");
+      // Redundant preloads are ignored to avoid S3 write costs
+      var res = await say.preload(request, response2);
+      should.deepEqual(res, {
+        s3Key,
+        updated: false,
+      });
+      var res = await say.speak(request);
+      should(say.s3Writes).equal(3);
+      should(say.hits).equal(hits + 2);
+      should(say.misses).equal(misses);
+      should(res.response.base64).equal("something-different");
 
-          // restore valid TTS response
-          var res = await say.preload(request, response1);
-          should.deepEqual(res, {
-            s3Key,
-            updated: true,
-          });
-          should(say.s3Writes).equal(4);
-          var res = await say.speak(request);
-          should(say.s3Writes).equal(4);
-          should(say.hits).equal(hits + 3);
-          should(say.misses).equal(misses);
-          should(res.response.base64).equal(response1.base64);
-
-          done();
-        } catch (e) {
-          done(e);
-        }
-      })();
+      // restore valid TTS response
+      var res = await say.preload(request, response1);
+      should.deepEqual(res, {
+        s3Key,
+        updated: true,
+      });
+      should(say.s3Writes).equal(4);
+      var res = await say.speak(request);
+      should(say.s3Writes).equal(4);
+      should(say.hits).equal(hits + 3);
+      should(say.misses).equal(misses);
+      should(res.response.base64).equal(response1.base64);
     });
     it("example", async () => {
       var say = new SayAgain(awsConfig);
@@ -362,48 +346,40 @@ typeof describe === "function" &&
         base64,
       });
     });
-    it("speak() rejects errors", (done) => {
-      (async function () {
-        try {
-          var say = await new SayAgain({
-            ignoreCache: true,
-            awsConfig,
-          }).initialize();
-          var { tts } = say;
+    it("speak() rejects errors", async()=>{
+      var say = await new SayAgain({
+        ignoreCache: true,
+        awsConfig,
+      }).initialize();
+      var { tts } = say;
 
-          tts.logLevel = "info";
-          var eCaught;
-          var res;
-          var req = JSON.parse(fs.readFileSync(JSON00C6));
-          logger.error("///////// EXPECTED ERROR (BEGIN)");
-          try {
-            req.text = req.text.substring(1); // invalid SSML
-            res = await say.speak(req);
-          } catch (e) {
-            eCaught = e;
-          }
-          should(eCaught).instanceOf(Error);
-          should(eCaught.message).match("Invalid SSML request");
-          should(logger.lastLog("error")).match(/Invalid SSML request/);
-          logger.error("///////// EXPECTED ERROR (END)");
+      tts.logLevel = "info";
+      var eCaught;
+      var res;
+      var req = JSON.parse(fs.readFileSync(JSON00C6));
+      logger.error("///////// EXPECTED ERROR (BEGIN)");
+      try {
+        req.text = req.text.substring(1); // invalid SSML
+        res = await say.speak(req);
+      } catch (e) {
+        eCaught = e;
+      }
+      should(eCaught).instanceOf(Error);
+      should(eCaught.message).match("Invalid SSML request");
+      should(logger.lastLog("error")).match(/Invalid SSML request/);
+      logger.error("///////// EXPECTED ERROR (END)");
 
-          logger.error("///////// EXPECTED ERROR (BEGIN)");
-          var req = JSON.parse(fs.readFileSync(JSON00C6));
-          try {
-            req.api = "invalid-api";
-            res = await say.speak(req);
-          } catch (e) {
-            eCaught = e;
-          }
-          should(eCaught).instanceOf(Error);
-          should(eCaught.message).match(/expected api:aws-polly/);
-          should(logger.lastLog("error")).match(/expected api:aws-polly/);
-          logger.error("///////// EXPECTED ERROR (END)");
-
-          done();
-        } catch (e) {
-          done(e);
-        }
-      })();
+      logger.error("///////// EXPECTED ERROR (BEGIN)");
+      var req = JSON.parse(fs.readFileSync(JSON00C6));
+      try {
+        req.api = "invalid-api";
+        res = await say.speak(req);
+      } catch (e) {
+        eCaught = e;
+      }
+      should(eCaught).instanceOf(Error);
+      should(eCaught.message).match(/expected api:aws-polly/);
+      should(logger.lastLog("error")).match(/expected api:aws-polly/);
+      logger.error("///////// EXPECTED ERROR (END)");
     });
   });
