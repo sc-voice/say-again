@@ -134,6 +134,7 @@
             }
             resolve(Body);
           } catch (e) {
+            that.warn(`getEntry()`, e.message);
             reject(e);
           }
         })();
@@ -156,6 +157,7 @@
             var res = await s3.deleteObject(params).promise();
             resolve(Body);
           } catch (e) {
+            that.warn(`deleteEntry()`, e.message);
             reject(e);
           }
         })();
@@ -209,6 +211,7 @@
               updated: !exists,
             });
           } catch (e) {
+            that.warn(`putEntry()`, e.message);
             reject(e);
           }
         })();
