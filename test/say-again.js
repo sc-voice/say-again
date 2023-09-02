@@ -4,7 +4,6 @@ typeof describe === "function" &&
     const fs = require("fs");
     const path = require("path");
     const should = require("should");
-    const AWS = require("aws-sdk");
     const { MerkleJson } = require("merkle-json");
     const { logger, LogInstance } = require("log-instance");
     const { AwsConfig, TtsPolly, SayAgain } = require("../index");
@@ -199,8 +198,9 @@ typeof describe === "function" &&
       say.logLevel = "debug";
       var res1 = await say.speak(req);
       should(logger.lastLog("info"))
+        .match(/00c6495507e72cd16a6f992c15b92c95.json/)
         .match(/Test-SayAgain: speak\(\) misses:1 hits:0 usage:34/)
-        .match(/00c6495507e72cd16a6f992c15b92c95.json/);
+        ;
       should(logger.lastLog("debug")).match(
         /TtsPolly: polly.synthesizeSpeech\(\)/
       );
@@ -211,8 +211,9 @@ typeof describe === "function" &&
       say.ignoreCache = false;
       var res2 = await say.speak(req);
       should(logger.lastLog("debug"))
+        .match(/00c6495507e72cd16a6f992c15b92c95.json/)
         .match(/SayAgain: speak\(\) hits:1 misses:1 usage:34/)
-        .match(/00c6495507e72cd16a6f992c15b92c95.json/);
+        ;
       should.deepEqual(res2, res1);
       var { hits, misses, errors } = say;
       should({ hits, misses, errors }).properties({
@@ -237,6 +238,7 @@ typeof describe === "function" &&
       var guid = "00c6495507e72cd16a6f992c15b92c95";
       var s3Key = `hi-IN/Aditi/00/${guid}.json`;
       var request = JSON.parse(fs.readFileSync(JSON00C6));
+      console.log("TESTTEST", "deleteEntry", s3Key);
       var res = await say.deleteEntry(s3Key);
       if (res) {
         // deleteEntry returns deleted entry
@@ -252,6 +254,9 @@ typeof describe === "function" &&
         // deleteEntry of non-existent entry returns null
         res = await say.deleteEntry(s3Key);
         should(res).equal(null);
+        console.log("TESTTEST", "deleted", s3Key);
+      } else {
+        console.log("TESTTEST", "not deleted", s3Key);
       }
 
       // first request will regenerate
@@ -261,7 +266,7 @@ typeof describe === "function" &&
       var { hits, misses } = say;
       should({ hits, misses }).properties({ hits: 0, misses: 1 });
     });
-    it("preload(req,res) => preloads S3 cache", async()=>{
+    it("TESTTESTpreload(req,res) => preloads S3 cache", async()=>{
       var say = new SayAgain(awsConfig);
       var request = JSON.parse(fs.readFileSync(JSON00C6));
 

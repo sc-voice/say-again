@@ -3,7 +3,6 @@ typeof describe === "function" &&
     const fs = require("fs");
     const path = require("path");
     const should = require("should");
-    const AWS = require("aws-sdk");
     const { MerkleJson } = require("merkle-json");
     const { AwsConfig } = require("../index");
     const TESTDATA = path.join(__dirname, "data");
@@ -35,8 +34,10 @@ typeof describe === "function" &&
       should.deepEqual(Object.keys(awsCfg).sort(), [
         "accessKeyId",
         "polly",
+        "pollyV3",
         "region",
         "s3",
+        "s3V3",
         "sayAgain",
         "secretAccessKey",
       ]);
@@ -53,8 +54,10 @@ typeof describe === "function" &&
         "accessKeyId",
         "myApp",
         "polly",
+        "pollyV3",
         "region",
         "s3",
+        "s3V3",
         "sayAgain",
         "secretAccessKey",
       ]);

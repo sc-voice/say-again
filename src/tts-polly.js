@@ -1,7 +1,10 @@
 (function (exports) {
   const fs = require("fs");
   const path = require("path");
-  const AWS = require("aws-sdk");
+  const { 
+    PollyClient, 
+    SynthesizeSpeechCommand 
+  } = require("@aws-sdk/client-polly");
   const pkg = require("../package.json");
   const AwsConfig = require("./aws-config");
   const { MerkleJson } = require("merkle-json");
@@ -25,7 +28,8 @@
         (async function () {
           try {
             if (!polly) {
-              that.polly = new AWS.Polly(awsConfig.polly);
+              let config = Object.assign({}, awsConfig.pollyV3);
+              that.polly = new PollyClient(config);
             }
             resolve(that);
           } catch (e) {
@@ -38,6 +42,7 @@
     }
 
     speak(request = {}) {
+      const msg = 'TtsPolly.speak() ';
       var that = this;
       var { text, voice, language, audioFormat } = request;
       var pbody = (resolve, reject) => {
@@ -60,12 +65,15 @@
 
             try {
               that.debug(`polly.synthesizeSpeech()`, JSON.stringify(pollyArgs));
-              var res = await polly.synthesizeSpeech(pollyArgs).promise();
+              //var res = await polly.synthesizeSpeech(pollyArgs).promise();
+              const cmd = new SynthesizeSpeechCommand(pollyArgs);
+              var res = await polly.send(cmd);
               var { ContentType, RequestCharacters, AudioStream } = res;
               that.usage += RequestCharacters;
+              let base64 = await AudioStream.transformToString("base64");
               resolve({
                 mime: ContentType,
-                base64: AudioStream.toString("base64"),
+                base64,
               });
             } catch (e) {
               that.error(
@@ -73,6 +81,7 @@
                 JSON.stringify(pollyArgs, null, 2),
                 e.message
               );
+
               reject(e);
             }
           } catch (e) {

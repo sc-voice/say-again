@@ -15,16 +15,29 @@
       };
       var props = Object.assign({}, envCfg, fileCfg, opts);
       delete props.configPath;
-      var { region, secretAccessKey, accessKeyId, sayAgain } = Object.assign(
-        this,
-        props
-      );
+      var { 
+        region, secretAccessKey, accessKeyId, sayAgain 
+      } = Object.assign( this, props);
 
       this.polly = Object.assign(
         {
           region,
           secretAccessKey,
           accessKeyId,
+          signatureVersion: "v4",
+          apiVersion: "2016-06-10",
+        },
+        fileCfg.polly,
+        opts.polly
+      );
+
+      this.pollyV3 = Object.assign(
+        {
+          region,
+          credentials: {
+            secretAccessKey,
+            accessKeyId,
+          },
           signatureVersion: "v4",
           apiVersion: "2016-06-10",
         },
@@ -43,6 +56,20 @@
         fileCfg.s3,
         opts.s3
       );
+
+      this.s3V3 = Object.assign(
+        {
+          region,
+          credentials: {
+            secretAccessKey,
+            accessKeyId,
+          },
+          apiVersion: "2006-03-01",
+          endpoint: "https://s3.us-west-1.amazonaws.com",
+        },
+        fileCfg.s3,
+        opts.s3
+      )
 
       this.sayAgain = Object.assign(
         {

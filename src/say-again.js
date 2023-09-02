@@ -1,7 +1,14 @@
 (function (exports) {
   const fs = require("fs");
   const path = require("path");
-  const AWS = require("aws-sdk");
+  const { 
+    S3Client,
+    ListBucketsCommand,
+    CreateBucketCommand,
+    GetObjectCommand,
+    PutObjectCommand,
+    DeleteObjectCommand,
+  } = require("@aws-sdk/client-s3");
   const pkg = require("../package.json");
   const { MerkleJson } = require("merkle-json");
   const AwsConfig = require("./aws-config");
@@ -26,9 +33,6 @@
         hashTag: "guid",
       });
       this.s3 = opts.s3;
-      if (this.s3 && !(this.s3 instanceof AWS.S3)) {
-        throw new Error("expected instance of AWS.S3");
-      }
       this.tts = opts.tts;
       this.awsConfig =
         opts.awsConfig instanceof AwsConfig
@@ -59,6 +63,7 @@
     }
 
     initialize() {
+      const msg = 'SayAgain.initialize() ';
       var that = this;
       if (that.initialized) {
         return that.initialized;
@@ -69,10 +74,11 @@
           try {
             var ttsOpts = Object.assign({}, awsConfig.polly, { logger: that });
             var tts = (that.tts = that.tts || new TtsPolly(ttsOpts));
-            var s3 = (that.s3 = that.s3 || new AWS.S3(awsConfig.s3));
+            var s3 = (that.s3 = that.s3 || new S3Client(awsConfig.s3V3));
             var { Bucket } = awsConfig.sayAgain;
             that.bucketName = Bucket;
-            var buckets = (await s3.listBuckets().promise()).Buckets;
+            let listBucketsCmd = new ListBucketsCommand({});
+            var buckets = (await s3.send(listBucketsCmd)).Buckets;
             var bucket = buckets.filter((b) => b.Name === Bucket)[0];
             if (bucket) {
               let pollyAccessKeyId = awsConfig.polly.accessKeyId;
@@ -86,10 +92,11 @@
               var params = {
                 Bucket,
                 CreateBucketConfiguration: {
-                  LocationConstraint: s3.config.region,
+                  LocationConstraint: await s3.config.region(),
                 },
               };
-              var res = await s3.createBucket(params).promise();
+              let createBucketCmd = new CreateBucketCommand(params);
+              var res = await s3.send(createBucketCmd);
               that.log(`initialize() createBucket:${Bucket}`, res);
             }
             resolve(that);
@@ -112,6 +119,7 @@
     }
 
     getEntry(s3Key) {
+      const msg = 'SayAgain.getEntry() ';
       var that = this;
       var pbody = (resolve, reject) => {
         (async function () {
@@ -123,10 +131,11 @@
             };
             try {
               that.s3Reads++;
-              var res = await s3.getObject(params).promise();
-              var Body = JSON.parse(res.Body);
+              let getObjectCmd = new GetObjectCommand(params);
+              var res = await s3.send(getObjectCmd);
+              var Body = JSON.parse(await res.Body.transformToString());
             } catch (e) {
-              if (e.code === "NoSuchKey") {
+              if (e.name === "NoSuchKey") {
                 resolve(null);
                 return;
               }
@@ -154,7 +163,8 @@
               Key: s3Key,
             };
             that.s3Writes++;
-            var res = await s3.deleteObject(params).promise();
+            let deleteObjectCmd = new DeleteObjectCommand(params);
+            var res = await s3.send(deleteObjectCmd);
             resolve(Body);
           } catch (e) {
             that.warn(`deleteEntry()`, e.message);
@@ -166,6 +176,7 @@
     }
 
     putEntry(s3Key, s3Value) {
+      const msg = 'SayAgain.putEntry() ';
       var that = this;
       if (s3Value.s3Key !== s3Key) {
         return Promise.reject(
@@ -183,14 +194,16 @@
                 Key: s3Key,
               };
               that.s3Reads++;
-              let res = await s3.getObject(params).promise();
-              var oldS3Value = JSON.parse(res.Body);
+              let getObjectCmd = new GetObjectCommand(params);
+              let res = await s3.send(getObjectCmd);
+              let body = await res.Body.transformToString();
+              var oldS3Value = JSON.parse(body);
               if (mj.hash(s3Value) !== mj.hash(oldS3Value)) {
                 that.log(`${s3Key} has changed`);
                 exists = false;
               }
             } catch (e) {
-              if (e.code === "NoSuchKey") {
+              if (e.name === "NoSuchKey") {
                 exists = false;
               } else {
                 throw e;
@@ -203,7 +216,8 @@
                 Body: JSON.stringify(s3Value),
               };
               that.s3Writes++;
-              var res = await s3.putObject(s3opts).promise();
+              let putObjectCmd = new PutObjectCommand(s3opts);
+              var res = await s3.send(putObjectCmd);
             }
 
             resolve({
@@ -220,6 +234,7 @@
     }
 
     preload(request, response) {
+      const msg = 'SayAgain.preload() ';
       var that = this;
       var pbody = (resolve, reject) => {
         (async function () {
@@ -240,6 +255,7 @@
     }
 
     speak(request) {
+      const msg = 'SayAgain.speak() ';
       var that = this;
       if (request == null) {
         return Promise.reject(new Error("expected request"));
@@ -259,7 +275,8 @@
             try {
               if (!ignoreCache) {
                 that.s3Reads++;
-                res = await s3.getObject(params).promise();
+                let getObjectCmd = new GetObjectCommand(params);
+                res = await s3.send(getObjectCmd);
                 that.hits++;
                 that.debug(
                   "speak()",
@@ -269,7 +286,8 @@
                   `${s3Key}`,
                   request.text
                 );
-                var json = JSON.parse(res.Body);
+                let text = await res.Body.transformToString();
+                var json = JSON.parse(text);
                 resolve(json);
               }
             } catch (e) {
@@ -298,13 +316,14 @@
                 Body: JSON.stringify(resSpeak),
               };
               that.s3Writes++;
-              await s3.putObject(s3opts).promise();
+              let putObjectCommand = new PutObjectCommand(s3opts);
+              await s3.send(putObjectCommand);
 
               resolve(resSpeak);
             } else if (err) {
-              that.error(e);
+              that.error(err);
               that.errors++;
-              reject(e);
+              reject(err);
             }
           } catch (e) {
             that.error(`SayAgain.speak()`, e.message);

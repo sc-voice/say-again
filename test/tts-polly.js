@@ -4,7 +4,6 @@ typeof describe === "function" &&
     const fs = require("fs");
     const path = require("path");
     const should = require("should");
-    const AWS = require("aws-sdk");
     const { MerkleJson } = require("merkle-json");
     const { AwsConfig, TtsPolly, SayAgain } = require("../index");
     const TESTDATA = path.join(__dirname, "data");
@@ -78,9 +77,8 @@ typeof describe === "function" &&
 
       // AWS default configuration is stored in CFGPATH
       var json = JSON.parse(fs.readFileSync(CFGPATH));
-      Object.keys(json.polly || {}).forEach((k) => {
-        should(tts.polly.config[k]).equal(json.polly[k]);
-      });
+      should(await tts.polly.config.region()).equal(json.polly.region);
+      should(tts.polly.config.apiVersion).equal(json.polly.apiVersion);
 
       // initialize executes once but can be called multiple times
       should(await tts.initialize()).equal(tts);
@@ -100,7 +98,7 @@ typeof describe === "function" &&
       should(logger.lastLog("error")).match(/expected api:aws-polly/);
       logger.error("//////////////// EXPECTED ERROR (END)");
     });
-    it("TESTTESspeak(request) => cached TTS", async ()=>{
+    it("speak(request) => cached TTS", async ()=>{
       var tts = new TtsPolly({ configPath: CFGPATH });
       tts.logLevel = 'info';
       var request = JSON.parse(fs.readFileSync(JSON00C6));
