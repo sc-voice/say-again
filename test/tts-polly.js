@@ -83,7 +83,7 @@ typeof describe === "function" &&
       // initialize executes once but can be called multiple times
       should(await tts.initialize()).equal(tts);
     });
-    it("quest) => handles invalid input", async()=>{
+    it("speak(request) => handles invalid input", async()=>{
       var tts = new TtsPolly({ configPath: CFGPATH });
       var request = JSON.parse(fs.readFileSync(JSON00C6));
       request.api = "invalid-api";
